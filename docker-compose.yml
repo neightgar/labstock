@@ -1,6 +1,6 @@
 services:
   labstock:
-    image: neightgar/labstock:latest
+    image: ghcr.io/neightgar/labstock:latest
     container_name: labstock
     restart: unless-stopped
     ports:

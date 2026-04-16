@@ -2,8 +2,8 @@
 
 **Система учёта лабораторного инвентаря для самостоятельного размещения.**
 
-[![Build](https://github.com/GITHUB_USERNAME/labstock/actions/workflows/docker.yml/badge.svg)](https://github.com/GITHUB_USERNAME/labstock/actions/workflows/docker.yml)
-[![Image](https://ghcr.io/GITHUB_USERNAME/labstock:latest)](https://github.com/GITHUB_USERNAME/labstock/pkgs/container/labstock)
+[![Build](https://github.com/neightgar/labstock/actions/workflows/docker.yml/badge.svg)](https://github.com/neightgar/labstock/actions/workflows/docker.yml)
+[![Image](https://ghcr.io/neightgar/labstock:latest)](https://github.com/neightgar/labstock/pkgs/container/labstock)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ---
@@ -71,7 +71,7 @@ SESSION_SECRET=замените-на-случайную-строку-32-симв
 ```yaml
 services:
   labstock:
-    image: ghcr.io/GITHUB_USERNAME/labstock:latest
+    image: ghcr.io/neightgar/labstock:latest
     container_name: labstock
     restart: unless-stopped
     ports:
@@ -114,7 +114,7 @@ docker compose pull && docker compose up -d
 
 ```bash
 # 1. Клонировать репозиторий
-git clone https://github.com/GITHUB_USERNAME/labstock.git
+git clone https://github.com/neightgar/labstock.git
 cd labstock
 
 # 2. Установить зависимости

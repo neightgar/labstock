@@ -1,0 +1,16 @@
+services:
+  labstock:
+    image: neightgar/labstock:latest
+    container_name: labstock
+    restart: unless-stopped
+    ports:
+      - "3120:3000"
+    volumes:
+      - /volume1/docker/labstock/data:/app/data
+      - /volume1/docker/labstock/uploads:/app/uploads
+      - /volume1/docker/labstock/backups:/app/backups
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:/app/data/mrb.db

@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+
+# Database files
+data/*.db
+data/*.db-wal
+data/*.db-shm
+prisma/data/
+
+# User uploads
+uploads/*
+!uploads/.gitkeep
+
+# Backups
+backups/*
+!backups/.gitkeep
+
+# Claude Code internal
+.claude/
+
+# Dev/debug scripts
+apply-*.js
+check-*.js
+check-*.txt
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Logs
+*.log
+npm-debug.log*

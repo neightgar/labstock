@@ -1,0 +1,140 @@
+<%
+  pageTitle    = t('protocols.title');
+  pageSubtitle = t('protocols.subtitle');
+  active       = 'protocols';
+
+  var showWsCol = currentUser && currentUser.role === 'admin' && !currentUser.activeWorkspaceId;
+  function wsColor(id) { return 'ws-c' + ((((id||1)-1)%8)+1); }
+  function wsLabel(ws) {
+    if (!ws) return '';
+    return currentLang === 'en' ? (ws.nameEn || ws.nameRu) : ws.nameRu;
+  }
+
+  function qs(overrides) {
+    const p = Object.assign({}, query, overrides);
+    return Object.entries(p)
+      .filter(([,v]) => v !== '' && v != null)
+      .map(([k,v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v))
+      .join('&');
+  }
+%>
+<%- include('../layouts/top', { pageTitle, active }) %>
+
+<!-- Toolbar -->
+<div class="page-toolbar">
+  <form class="toolbar-filters" method="get" action="/protocols">
+    <input class="search-input" type="text" name="search"
+      placeholder="<%= t('btn.search') %>" value="<%= query.search || '' %>">
+
+    <select class="select-sm" name="category">
+      <option value="">— <%= t('protocols.allCategories') %> —</option>
+      <% categories.forEach(function(cat) { %>
+        <option value="<%= cat %>" <%= query.category === cat ? 'selected' : '' %>><%= cat %></option>
+      <% }) %>
+    </select>
+
+    <button type="submit" class="btn btn-ghost btn-sm"><%= t('btn.filter') %></button>
+    <% if (query.search || query.category) { %>
+      <a href="/protocols" class="btn btn-ghost btn-sm"><%= t('btn.reset') %></a>
+    <% } %>
+  </form>
+
+  <div class="toolbar-actions">
+    <a href="/protocols/new" class="btn btn-primary btn-sm">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <%= t('btn.add') %>
+    </a>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="data-table-wrap">
+  <% if (items.length === 0) { %>
+    <p class="empty-text"><%= t('protocols.empty') %></p>
+  <% } else { %>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th><%= t('protocols.col.title') %></th>
+        <th><%= t('protocols.col.category') %></th>
+        <th><%= t('protocols.col.version') %></th>
+        <th><%= t('protocols.col.updatedBy') %></th>
+        <th><%= t('protocols.col.updatedAt') %></th>
+        <% if (showWsCol) { %><th><%= t('admin.workspace.col') %></th><% } %>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% items.forEach(function(item) { %>
+      <tr>
+        <td>
+          <div class="cell-name">
+            <a href="/protocols/<%= item.id %>" class="link-subtle"><%= item.titleRu %></a>
+          </div>
+          <% if (item.titleEn && item.titleEn !== item.titleRu) { %>
+            <div class="cell-sub"><%= item.titleEn %></div>
+          <% } %>
+        </td>
+        <td>
+          <% if (item.category) { %>
+            <span class="ref-badge"><%= item.category %></span>
+          <% } else { %>—<% } %>
+        </td>
+        <td class="cell-mono">v<%= item.version %></td>
+        <td><%= item.updater?.displayName || '—' %></td>
+        <td class="cell-mono" style="white-space:nowrap">
+          <%= new Date(item.updatedAt).toLocaleDateString('ru-RU') %>
+        </td>
+        <% if (showWsCol) { %>
+        <td><% if (item.workspace) { %><span class="ws-badge <%= wsColor(item.workspace.id) %>"><%= wsLabel(item.workspace) %></span><% } else { %>—<% } %></td>
+        <% } %>
+        <td>
+          <div class="table-actions">
+            <a href="/protocols/<%= item.id %>" class="med-action" title="<%= t('btn.view') %>">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </a>
+            <a href="/protocols/<%= item.id %>/edit" class="med-action" title="<%= t('btn.edit') %>">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </a>
+            <form method="post" action="/protocols/<%= item.id %>/delete"
+                  onsubmit="return confirm('<%= t('confirm.delete') %>')" style="display:inline">
+              <button type="submit" class="med-action danger" title="<%= t('btn.delete') %>">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              </button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+
+<!-- Pagination -->
+<% if (pages > 1) { %>
+<div class="pagination">
+  <% if (page > 1) { %>
+    <a class="pag-btn" href="/protocols?<%= qs({ page: page - 1 }) %>">←</a>
+  <% } else { %>
+    <span class="pag-btn is-disabled">←</span>
+  <% } %>
+
+  <% for (let p = 1; p <= pages; p++) {
+    if (p === 1 || p === pages || Math.abs(p - page) <= 1) { %>
+      <a class="pag-btn <%= p === page ? 'is-active' : '' %>" href="/protocols?<%= qs({ page: p }) %>"><%= p %></a>
+    <% } else if (Math.abs(p - page) === 2) { %>
+      <span class="pag-btn is-disabled">…</span>
+    <% }
+  } %>
+
+  <% if (page < pages) { %>
+    <a class="pag-btn" href="/protocols?<%= qs({ page: page + 1 }) %>">→</a>
+  <% } else { %>
+    <span class="pag-btn is-disabled">→</span>
+  <% } %>
+  <span class="pag-info"><%= total %> <%= t('pagination.total') %></span>
+</div>
+<% } %>
+
+<%- include('../layouts/bottom') %>

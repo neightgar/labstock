@@ -1,0 +1,81 @@
+<header class="top-header">
+  <div class="top-header-inner">
+
+    <!-- Burger (mobile) + page title -->
+    <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+      <button id="burger-btn" class="burger-btn" aria-label="Menu" type="button">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+      </button>
+      <div class="page-title-wrap">
+        <h1 class="page-title"><%= typeof pageTitle !== 'undefined' ? pageTitle : '' %></h1>
+        <% if (typeof pageSubtitle !== 'undefined' && pageSubtitle) { %>
+          <p class="page-subtitle"><%= pageSubtitle %></p>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Global search -->
+    <div class="header-search header-actions">
+      <div style="position:relative">
+        <svg class="header-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input id="global-search" class="header-search-input" type="text"
+               placeholder="<%= t('search.placeholder') %>"
+               autocomplete="off" spellcheck="false">
+        <div id="search-dropdown" class="search-dropdown"></div>
+      </div>
+    </div>
+
+    <!-- Workspace switcher -->
+    <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+      <div class="header-actions">
+        <% if (currentUser.role === 'admin' || (currentUser.workspaces && currentUser.workspaces.length > 1)) { %>
+          <form method="POST" action="/workspace/switch" style="margin:0">
+            <select name="workspaceId" onchange="this.form.submit()" class="ws-switcher-select"
+                    title="<%= t('admin.workspace.active') %>">
+              <% if (currentUser.role === 'admin') { %>
+                <option value="" <%= !currentUser.activeWorkspaceId ? 'selected' : '' %>>
+                  <%= t('admin.workspace.allData') %>
+                </option>
+              <% } %>
+              <% (currentUser.workspaces || []).forEach(function(ws) { %>
+                <option value="<%= ws.id %>" <%= currentUser.activeWorkspaceId === ws.id ? 'selected' : '' %>>
+                  <%= currentLang === 'en' ? (ws.nameEn || ws.nameRu) : ws.nameRu %>
+                </option>
+              <% }); %>
+            </select>
+          </form>
+        <% } else if (currentUser.workspaces && currentUser.workspaces.length === 1) { %>
+          <span class="ws-static-label">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2"/>
+              <path d="M16 7V5a2 2 0 0 0-4 0v2"/>
+              <path d="M8 7V5a2 2 0 0 0-4 0v2"/>
+            </svg>
+            <%= currentLang === 'en' ? (currentUser.workspaces[0].nameEn || currentUser.workspaces[0].nameRu) : currentUser.workspaces[0].nameRu %>
+          </span>
+        <% } %>
+      </div>
+    <% } %>
+
+    <!-- User chip -->
+    <div class="header-actions">
+      <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+        <a href="/profile" class="user-chip">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span><%= currentUser.displayName %></span>
+        </a>
+      <% } %>
+    </div>
+
+  </div>
+</header>

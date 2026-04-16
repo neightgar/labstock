@@ -1,0 +1,301 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Справочники ───────────────────────────────────────────────────────────
+
+model Location {
+  id     Int    @id @default(autoincrement())
+  nameRu String @map("name_ru")
+  nameEn String @map("name_en")
+
+  reagents    Reagent[]
+  consumables Consumable[]
+  equipment   Equipment[]
+
+  @@map("locations")
+}
+
+model Manufacturer {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  reagents    Reagent[]
+  consumables Consumable[]
+  equipment   Equipment[]
+
+  @@map("manufacturers")
+}
+
+model ItemType {
+  id       Int    @id @default(autoincrement())
+  nameRu   String @map("name_ru")
+  nameEn   String @map("name_en")
+  category String // "consumable" | "glassware"
+
+  consumables Consumable[]
+
+  @@map("item_types")
+}
+
+// ─── Основные таблицы ──────────────────────────────────────────────────────
+
+model Reagent {
+  id             Int           @id @default(autoincrement())
+  nameRu         String        @map("name_ru")
+  nameEn         String        @map("name_en")
+  casNumber      String?       @map("cas_number")
+  formula        String?
+  manufacturerId Int?          @map("manufacturer_id")
+  manufacturer   Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  catalogNumber  String?       @map("catalog_number")
+  quantity       Float
+  unit           String
+  minQuantity    Float?        @map("min_quantity")
+  locationId     Int?          @map("location_id")
+  location       Location?     @relation(fields: [locationId], references: [id])
+  expiryDate     DateTime?     @map("expiry_date")
+  receivedDate   DateTime?     @map("received_date")
+  notes          String?
+  deletedAt      DateTime?     @map("deleted_at")
+  createdBy      Int           @map("created_by")
+  creator        User          @relation(fields: [createdBy], references: [id])
+  workspaceId    Int           @map("workspace_id")
+  workspace      Workspace     @relation(fields: [workspaceId], references: [id])
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  @@map("reagents")
+}
+
+model Consumable {
+  id             Int           @id @default(autoincrement())
+  nameRu         String        @map("name_ru")
+  nameEn         String        @map("name_en")
+  typeId         Int?          @map("type_id")
+  type           ItemType?     @relation(fields: [typeId], references: [id])
+  manufacturerId Int?          @map("manufacturer_id")
+  manufacturer   Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  catalogNumber  String?       @map("catalog_number")
+  quantity       Int
+  unit           String
+  minQuantity    Int?          @map("min_quantity")
+  locationId     Int?          @map("location_id")
+  location       Location?     @relation(fields: [locationId], references: [id])
+  size           String?
+  sterile        Boolean       @default(false)
+  material       String?
+  volume         Float?
+  lotNumber      String?       @map("lot_number")
+  expiryDate     DateTime?     @map("expiry_date")
+  notes          String?
+  deletedAt      DateTime?     @map("deleted_at")
+  createdBy      Int           @map("created_by")
+  creator        User          @relation(fields: [createdBy], references: [id])
+  workspaceId    Int           @map("workspace_id")
+  workspace      Workspace     @relation(fields: [workspaceId], references: [id])
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  @@map("consumables")
+}
+
+model Equipment {
+  id             Int             @id @default(autoincrement())
+  nameRu         String          @map("name_ru")
+  nameEn         String          @map("name_en")
+  model          String?
+  manufacturerId Int?            @map("manufacturer_id")
+  manufacturer   Manufacturer?   @relation(fields: [manufacturerId], references: [id])
+  serialNumber   String?         @map("serial_number")
+  locationId     Int?            @map("location_id")
+  location       Location?       @relation(fields: [locationId], references: [id])
+  status         EquipmentStatus @default(WORKING)
+  notes          String?
+  deletedAt      DateTime?       @map("deleted_at")
+  createdBy      Int             @map("created_by")
+  creator        User            @relation(fields: [createdBy], references: [id])
+  workspaceId    Int             @map("workspace_id")
+  workspace      Workspace       @relation(fields: [workspaceId], references: [id])
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  @@map("equipment")
+}
+
+enum EquipmentStatus {
+  WORKING
+  REPAIR
+  DECOMMISSIONED
+}
+
+// ─── Заказы ────────────────────────────────────────────────────────────────
+
+model OrderItem {
+  id            Int      @id @default(autoincrement())
+  nameRu        String   @map("name_ru")
+  nameEn        String   @map("name_en")
+  entityType    String   @map("entity_type") // "reagent" | "consumable"
+  entityId      Int?     @map("entity_id")
+  quantity      Float
+  unit          String
+  manufacturer  String?
+  catalogNumber String?  @map("catalog_number")
+  notes         String?
+  createdBy     Int      @map("created_by")
+  creator       User     @relation(fields: [createdBy], references: [id])
+  workspaceId   Int      @map("workspace_id")
+  workspace     Workspace @relation(fields: [workspaceId], references: [id])
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("order_items")
+}
+
+// ─── Протоколы (SOP) ───────────────────────────────────────────────────────
+
+model Protocol {
+  id        Int       @id @default(autoincrement())
+  titleRu   String    @map("title_ru")
+  titleEn   String    @map("title_en")
+  contentRu String    @map("content_ru")
+  contentEn String    @map("content_en")
+  version   Int       @default(1)
+  category  String?
+  notes     String?
+  deletedAt DateTime? @map("deleted_at")
+  createdBy Int       @map("created_by")
+  creator   User      @relation("ProtocolCreator", fields: [createdBy], references: [id])
+  updatedBy   Int       @map("updated_by")
+  updater     User      @relation("ProtocolUpdater", fields: [updatedBy], references: [id])
+  workspaceId Int       @map("workspace_id")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  items    ProtocolItem[]
+  versions ProtocolVersion[]
+
+  @@map("protocols")
+}
+
+model ProtocolItem {
+  id             Int      @id @default(autoincrement())
+  protocolId     Int      @map("protocol_id")
+  protocol       Protocol @relation(fields: [protocolId], references: [id])
+  entityType     String   @map("entity_type")
+  entityId       Int      @map("entity_id")
+  quantityNeeded Float?   @map("quantity_needed")
+  unit           String?
+  notes          String?
+
+  @@map("protocol_items")
+}
+
+model ProtocolVersion {
+  id         Int      @id @default(autoincrement())
+  protocolId Int      @map("protocol_id")
+  protocol   Protocol @relation(fields: [protocolId], references: [id])
+  version    Int
+  titleRu    String   @map("title_ru")
+  titleEn    String   @map("title_en")
+  contentRu  String   @map("content_ru")
+  contentEn  String   @map("content_en")
+  changedBy  Int      @map("changed_by")
+  changer    User     @relation(fields: [changedBy], references: [id])
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("protocol_versions")
+}
+
+// ─── Служебные таблицы ─────────────────────────────────────────────────────
+
+model User {
+  id             Int      @id @default(autoincrement())
+  username       String   @unique
+  passwordHash   String   @map("password_hash")
+  displayName    String   @map("display_name")
+  role           String   @default("user")
+  telegramChatId String?  @map("telegram_chat_id")
+  apiKey         String?  @unique @map("api_key")
+  language       String   @default("ru")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  reagents         Reagent[]
+  consumables      Consumable[]
+  equipment        Equipment[]
+  orderItems       OrderItem[]
+  protocolsCreated Protocol[]        @relation("ProtocolCreator")
+  protocolsUpdated Protocol[]        @relation("ProtocolUpdater")
+  protocolVersions ProtocolVersion[]
+  attachments      Attachment[]
+  auditLogs        AuditLog[]
+  workspaceMembers WorkspaceMember[]
+
+  @@map("users")
+}
+
+model Attachment {
+  id         Int      @id @default(autoincrement())
+  filename   String
+  filepath   String
+  mimeType   String   @map("mime_type")
+  entityType String   @map("entity_type")
+  entityId   Int      @map("entity_id")
+  uploadedBy Int      @map("uploaded_by")
+  uploader   User     @relation(fields: [uploadedBy], references: [id])
+  uploadedAt DateTime @default(now()) @map("uploaded_at")
+
+  @@map("attachments")
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @map("user_id")
+  user       User     @relation(fields: [userId], references: [id])
+  entityType String   @map("entity_type")
+  entityId   Int      @map("entity_id")
+  action     String
+  changes    String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
+}
+
+model Settings {
+  key   String @id
+  value String
+
+  @@map("settings")
+}
+
+model Workspace {
+  id        Int      @id @default(autoincrement())
+  nameRu    String   @map("name_ru")
+  nameEn    String   @map("name_en")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  members     WorkspaceMember[]
+  reagents    Reagent[]
+  consumables Consumable[]
+  equipment   Equipment[]
+  protocols   Protocol[]
+  orderItems  OrderItem[]
+
+  @@map("workspaces")
+}
+
+model WorkspaceMember {
+  userId      Int       @map("user_id")
+  workspaceId Int       @map("workspace_id")
+  user        User      @relation(fields: [userId], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  assignedAt  DateTime  @default(now()) @map("assigned_at")
+
+  @@id([userId, workspaceId])
+  @@map("workspace_members")
+}

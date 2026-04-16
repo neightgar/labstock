@@ -1,0 +1,219 @@
+<%
+  pageTitle   = t('dashboard.title');
+  pageSubtitle = t('dashboard.subtitle');
+  active = 'dashboard';
+
+  function fmtDate(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString(currentLang === 'ru' ? 'ru-RU' : 'en-GB');
+  }
+
+  function daysLeft(d) {
+    if (!d) return null;
+    var diff = Math.ceil((new Date(d) - new Date()) / 86400000);
+    return diff;
+  }
+
+  function wsColor(wsId) {
+    return 'ws-c' + ((((wsId || 1) - 1) % 8) + 1);
+  }
+
+  function wsName(wsId) {
+    var ws = wsMap && wsMap[wsId];
+    if (!ws) return '';
+    return currentLang === 'en' ? (ws.nameEn || ws.nameRu) : ws.nameRu;
+  }
+%>
+<%- include('layouts/top', { pageTitle, active }) %>
+
+<!-- ── Stat Cards ──────────────────────────────────────── -->
+<div class="dashboard-grid">
+
+  <a href="/reagents" class="stat-card">
+    <div class="stat-icon" style="background:#EFF6FF;color:#2563EB">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3l-1 6H4l2 4h12l2-4h-3L16 3"/><path d="M6 13v8h12v-8"/><path d="M10 17h4"/></svg>
+    </div>
+    <div class="stat-body">
+      <span class="stat-value"><%= reagentCount %></span>
+      <span class="stat-label"><%= t('dashboard.reagents') %></span>
+    </div>
+  </a>
+
+  <a href="/consumables" class="stat-card">
+    <div class="stat-icon" style="background:var(--ok-light);color:var(--ok)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v1H8V6a4 4 0 0 1 4-4z"/><path d="M8 7v13a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V7"/></svg>
+    </div>
+    <div class="stat-body">
+      <span class="stat-value"><%= consumableCount %></span>
+      <span class="stat-label"><%= t('dashboard.consumables') %></span>
+    </div>
+  </a>
+
+  <a href="/equipment" class="stat-card">
+    <div class="stat-icon" style="background:var(--amber-light);color:var(--amber)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </div>
+    <div class="stat-body">
+      <span class="stat-value"><%= equipmentCount %></span>
+      <span class="stat-label"><%= t('dashboard.equipment') %></span>
+    </div>
+  </a>
+
+  <a href="/orders" class="stat-card">
+    <div class="stat-icon" style="background:#F5F3FF;color:#7C3AED">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+    </div>
+    <div class="stat-body">
+      <span class="stat-value"><%= orderCount %></span>
+      <span class="stat-label"><%= t('dashboard.orders') %></span>
+    </div>
+  </a>
+
+  <a href="/protocols" class="stat-card">
+    <div class="stat-icon" style="background:#FFF7ED;color:#EA580C">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    </div>
+    <div class="stat-body">
+      <span class="stat-value"><%= protocolCount %></span>
+      <span class="stat-label"><%= t('dashboard.protocols') %></span>
+    </div>
+  </a>
+
+</div>
+
+<!-- ── Alert Sections ───────────────────────────────────── -->
+<div class="dashboard-sections">
+
+  <!-- Low Stock -->
+  <div class="dash-section">
+    <div class="dash-section-header">
+      <div class="dash-section-title <%= lowStockItems.length > 0 ? 'is-amber' : '' %>">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <%= t('dashboard.sectionLowStock') %>
+      </div>
+      <% if (lowStockItems.length > 0) { %>
+        <span class="dash-count is-amber"><%= lowStockItems.length %></span>
+      <% } %>
+    </div>
+
+    <% if (lowStockItems.length === 0) { %>
+      <div class="dash-all-good">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        <%= t('dashboard.allGood') %>
+      </div>
+    <% } else { %>
+      <div class="dash-alert-list">
+        <% lowStockItems.forEach(function(item) {
+          var url = '/' + item.entity_type + 's/' + item.id;
+          var name = currentLang === 'ru' ? item.name_ru : (item.name_en || item.name_ru);
+        %>
+        <div class="dash-alert-item">
+          <span class="dash-alert-type dash-type-<%= item.entity_type %>">
+            <%= t('protocols.materials.type' + (item.entity_type === 'reagent' ? 'Reagent' : 'Consumable')) %>
+          </span>
+          <div class="dash-alert-name">
+            <a href="<%= url %>"><%= name %></a>
+            <% if (isAdminAllData && item.workspace_id) { %>
+              <span class="ws-badge <%= wsColor(item.workspace_id) %>"><%= wsName(item.workspace_id) %></span>
+            <% } %>
+          </div>
+          <div class="dash-alert-meta is-amber">
+            <%= Number(item.quantity) %> / <%= Number(item.min_quantity) %>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- Expired -->
+  <div class="dash-section">
+    <div class="dash-section-header">
+      <div class="dash-section-title <%= expiredItems.length > 0 ? 'is-rust' : '' %>">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <%= t('dashboard.sectionExpired') %>
+      </div>
+      <% if (expiredItems.length > 0) { %>
+        <span class="dash-count is-rust"><%= expiredItems.length %></span>
+      <% } %>
+    </div>
+
+    <% if (expiredItems.length === 0) { %>
+      <div class="dash-all-good">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        <%= t('dashboard.allGood') %>
+      </div>
+    <% } else { %>
+      <div class="dash-alert-list">
+        <% expiredItems.forEach(function(item) {
+          var url  = '/' + item.entity_type + 's/' + item.id;
+          var name = currentLang === 'ru' ? item.name_ru : (item.name_en || item.name_ru);
+        %>
+        <div class="dash-alert-item">
+          <span class="dash-alert-type dash-type-<%= item.entity_type %>">
+            <%= t('protocols.materials.type' + (item.entity_type === 'reagent' ? 'Reagent' : 'Consumable')) %>
+          </span>
+          <div class="dash-alert-name">
+            <a href="<%= url %>"><%= name %></a>
+            <% if (isAdminAllData && item.workspace_id) { %>
+              <span class="ws-badge <%= wsColor(item.workspace_id) %>"><%= wsName(item.workspace_id) %></span>
+            <% } %>
+          </div>
+          <div class="dash-alert-meta is-rust">
+            <%= fmtDate(item.expiry_date) %>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- Expiring Soon -->
+  <div class="dash-section">
+    <div class="dash-section-header">
+      <div class="dash-section-title <%= expiringSoonItems.length > 0 ? 'is-amber' : '' %>">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <%= t('dashboard.sectionExpiringSoon') %>
+      </div>
+      <% if (expiringSoonItems.length > 0) { %>
+        <span class="dash-count is-amber"><%= expiringSoonItems.length %></span>
+      <% } %>
+    </div>
+
+    <% if (expiringSoonItems.length === 0) { %>
+      <div class="dash-all-good">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        <%= t('dashboard.allGood') %>
+      </div>
+    <% } else { %>
+      <div class="dash-alert-list">
+        <% expiringSoonItems.forEach(function(item) {
+          var url  = '/' + item.entity_type + 's/' + item.id;
+          var name = currentLang === 'ru' ? item.name_ru : (item.name_en || item.name_ru);
+          var dl   = daysLeft(item.expiry_date);
+        %>
+        <div class="dash-alert-item">
+          <span class="dash-alert-type dash-type-<%= item.entity_type %>">
+            <%= t('protocols.materials.type' + (item.entity_type === 'reagent' ? 'Reagent' : 'Consumable')) %>
+          </span>
+          <div class="dash-alert-name">
+            <a href="<%= url %>"><%= name %></a>
+            <% if (isAdminAllData && item.workspace_id) { %>
+              <span class="ws-badge <%= wsColor(item.workspace_id) %>"><%= wsName(item.workspace_id) %></span>
+            <% } %>
+          </div>
+          <div class="dash-alert-meta is-amber">
+            <%= fmtDate(item.expiry_date) %>
+            <% if (dl !== null && dl >= 0) { %>
+              &nbsp;<span style="opacity:0.7">(<%= dl %> <%= t('dashboard.daysLeft') %>)</span>
+            <% } %>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+</div>
+
+<%- include('layouts/bottom') %>

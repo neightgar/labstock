@@ -1,0 +1,185 @@
+<%
+  pageTitle  = t('equipment.title');
+  pageSubtitle = t('equipment.subtitle');
+  active = 'equipment';
+
+  const STATUS_KEYS = { WORKING: 'equipment.status.working', REPAIR: 'equipment.status.repair', DECOMMISSIONED: 'equipment.status.decommissioned' };
+  const STATUS_CSS  = { WORKING: 'status-working', REPAIR: 'status-repair', DECOMMISSIONED: 'status-decommissioned' };
+
+  var showWsCol = currentUser && currentUser.role === 'admin' && !currentUser.activeWorkspaceId;
+  function wsColor(id) { return 'ws-c' + ((((id||1)-1)%8)+1); }
+  function wsLabel(ws) {
+    if (!ws) return '';
+    return currentLang === 'en' ? (ws.nameEn || ws.nameRu) : ws.nameRu;
+  }
+
+  function qs(overrides) {
+    const p = Object.assign({}, query, overrides);
+    return Object.entries(p)
+      .filter(([,v]) => v !== '' && v != null)
+      .map(([k,v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+      .join('&');
+  }
+%>
+<%- include('../layouts/top', { pageTitle, active }) %>
+
+<% if (query.imported) { %>
+  <div class="status-banner" style="margin-bottom:14px">
+    <%= t('import.success', { count: query.imported }) %>
+  </div>
+<% } %>
+
+<!-- Toolbar -->
+<div class="page-toolbar">
+  <form class="toolbar-filters" method="get" action="/equipment">
+    <input class="search-input" type="text" name="search"
+      placeholder="<%= t('btn.search') %>" value="<%= query.search || '' %>">
+
+    <select class="select-sm" name="status">
+      <option value="">— <%= t('equipment.allStatuses') %> —</option>
+      <option value="WORKING"        <%= query.status === 'WORKING'        ? 'selected' : '' %>><%= t('equipment.status.working') %></option>
+      <option value="REPAIR"         <%= query.status === 'REPAIR'         ? 'selected' : '' %>><%= t('equipment.status.repair') %></option>
+      <option value="DECOMMISSIONED" <%= query.status === 'DECOMMISSIONED' ? 'selected' : '' %>><%= t('equipment.status.decommissioned') %></option>
+    </select>
+
+    <select class="select-sm" name="locationId">
+      <option value=""><%= t('reagents.allLocations') %></option>
+      <% locations.forEach(loc => { %>
+        <option value="<%= loc.id %>" <%= query.locationId == loc.id ? 'selected' : '' %>>
+          <%= currentLang === 'ru' ? loc.nameRu : loc.nameEn %>
+        </option>
+      <% }) %>
+    </select>
+
+    <select class="select-sm" name="manufacturerId">
+      <option value=""><%= t('reagents.allManufacturers') %></option>
+      <% manufacturers.forEach(m => { %>
+        <option value="<%= m.id %>" <%= query.manufacturerId == m.id ? 'selected' : '' %>><%= m.name %></option>
+      <% }) %>
+    </select>
+
+    <button type="submit" class="btn btn-ghost btn-sm"><%= t('btn.filter') %></button>
+    <% if (query.search || query.locationId || query.manufacturerId || query.status) { %>
+      <a href="/equipment" class="btn btn-ghost btn-sm"><%= t('btn.reset') %></a>
+    <% } %>
+  </form>
+
+  <div class="toolbar-actions">
+    <a href="/equipment/export?format=xlsx&<%= qs({page:undefined}) %>" class="btn btn-ghost btn-sm">↓ XLSX</a>
+    <a href="/equipment/export?format=csv&<%= qs({page:undefined}) %>"  class="btn btn-ghost btn-sm">↓ CSV</a>
+    <form method="post" action="/equipment/import" enctype="multipart/form-data" style="display:inline">
+      <label class="btn btn-ghost btn-sm" style="cursor:pointer">
+        ↑ <%= t('btn.import') %>
+        <input type="file" name="file" accept=".xlsx" hidden onchange="this.form.submit()">
+      </label>
+    </form>
+    <a href="/equipment/new" class="btn btn-primary btn-sm">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <%= t('btn.add') %>
+    </a>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="data-table-wrap">
+  <% if (items.length === 0) { %>
+    <div class="empty-state">
+      <div class="empty-state-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </div>
+      <div class="empty-state-title"><%= t('equipment.empty') %></div>
+      <div class="empty-state-sub"></div>
+      <a href="/equipment/new" class="btn btn-primary btn-sm"><%= t('equipment.addFirst') %></a>
+    </div>
+  <% } else { %>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th data-sort="nameRu"><%= t('reagents.col.name') %></th>
+        <th data-sort="model"><%= t('equipment.col.model') %></th>
+        <th><%= t('reagents.col.manufacturer') %></th>
+        <th data-sort="serialNumber"><%= t('equipment.col.serial') %></th>
+        <th><%= t('reagents.col.location') %></th>
+        <th data-sort="status"><%= t('equipment.col.status') %></th>
+        <% if (showWsCol) { %><th><%= t('admin.workspace.col') %></th><% } %>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% items.forEach(item => { %>
+      <tr>
+        <td>
+          <div class="cell-name"><%= item.nameRu %></div>
+          <% if (item.nameEn && item.nameEn !== item.nameRu) { %>
+            <div class="cell-sub"><%= item.nameEn %></div>
+          <% } %>
+        </td>
+        <td class="cell-mono"><%= item.model || '—' %></td>
+        <td><%= item.manufacturer?.name || '—' %></td>
+        <td class="cell-mono"><%= item.serialNumber || '—' %></td>
+        <td><%= item.location ? (currentLang === 'ru' ? item.location.nameRu : item.location.nameEn) : '—' %></td>
+        <td>
+          <span class="status-badge <%= STATUS_CSS[item.status] %>">
+            <%= t(STATUS_KEYS[item.status] || 'equipment.status.working') %>
+          </span>
+        </td>
+        <% if (showWsCol) { %>
+        <td><% if (item.workspace) { %><span class="ws-badge <%= wsColor(item.workspace.id) %>"><%= wsLabel(item.workspace) %></span><% } else { %>—<% } %></td>
+        <% } %>
+        <td>
+          <div class="table-actions">
+            <a href="/equipment/<%= item.id %>/qr" target="_blank" class="med-action" title="<%= t('equipment.qrCode') %>">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none"/><line x1="14" y1="14" x2="17" y2="14"/><line x1="17" y1="14" x2="17" y2="17"/><line x1="14" y1="17" x2="21" y2="17"/><line x1="21" y1="14" x2="21" y2="21"/><line x1="14" y1="21" x2="17" y2="21"/></svg>
+            </a>
+            <a href="/equipment/<%= item.id %>" class="med-action" title="<%= t('btn.view') %>">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </a>
+            <a href="/equipment/<%= item.id %>/edit" class="med-action" title="<%= t('btn.edit') %>">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </a>
+            <form method="post" action="/equipment/<%= item.id %>/delete"
+                  onsubmit="return confirm('<%= t('confirm.delete') %>')" style="display:inline">
+              <button type="submit" class="med-action danger" title="<%= t('btn.delete') %>">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              </button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+
+<!-- Pagination -->
+<% if (pages > 1) { %>
+<div class="pagination">
+  <% if (page > 1) { %>
+    <a class="pag-btn" href="/equipment?<%= qs({ page: page - 1 }) %>">←</a>
+  <% } else { %>
+    <span class="pag-btn is-disabled">←</span>
+  <% } %>
+  <% for (let p = 1; p <= pages; p++) {
+    if (p === 1 || p === pages || Math.abs(p - page) <= 1) { %>
+      <a class="pag-btn <%= p === page ? 'is-active' : '' %>" href="/equipment?<%= qs({ page: p }) %>"><%= p %></a>
+    <% } else if (Math.abs(p - page) === 2) { %>
+      <span class="pag-btn is-disabled">…</span>
+    <% }
+  } %>
+  <% if (page < pages) { %>
+    <a class="pag-btn" href="/equipment?<%= qs({ page: page + 1 }) %>">→</a>
+  <% } else { %>
+    <span class="pag-btn is-disabled">→</span>
+  <% } %>
+  <span class="pag-info"><%= total %> <%= t('pagination.total') %></span>
+</div>
+<% } %>
+
+<div style="margin-top:8px">
+  <a href="/trash" class="btn btn-ghost btn-sm" style="color:var(--text-muted)">
+    🗑 <%= t('trash.link') %>
+  </a>
+</div>
+
+<%- include('../layouts/bottom') %>

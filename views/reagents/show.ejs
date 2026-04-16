@@ -1,0 +1,159 @@
+<%
+  pageTitle = item.nameRu;
+  active    = 'reagents';
+
+  const now      = new Date();
+  const expired  = item.expiryDate && new Date(item.expiryDate) < now;
+  const expSoon  = !expired && item.expiryDate && new Date(item.expiryDate) < new Date(now.getTime() + 7*86400000);
+  const lowStock = item.minQuantity != null && item.quantity <= item.minQuantity;
+
+  function fmtDate(dt) {
+    if (!dt) return null;
+    return new Date(dt).toLocaleDateString(currentLang === 'ru' ? 'ru-RU' : 'en-GB');
+  }
+%>
+<%- include('../layouts/top', { pageTitle, active }) %>
+
+<!-- Breadcrumb -->
+<nav class="breadcrumb">
+  <a href="/"><%= t('breadcrumb.home') %></a>
+  <span class="breadcrumb-sep">›</span>
+  <a href="/reagents"><%= t('nav.reagents') %></a>
+  <span class="breadcrumb-sep">›</span>
+  <span><%= item.nameRu %></span>
+</nav>
+
+<!-- Alert banners -->
+<% if (expired) { %>
+  <div class="status-banner is-error" style="margin-bottom:14px;max-width:780px">
+    ⚠ <%= t('reagents.alert.expired') %>
+  </div>
+<% } else if (expSoon) { %>
+  <div class="status-banner" style="margin-bottom:14px;max-width:780px">
+    ⚠ <%= t('reagents.alert.expiringSoon') %>
+  </div>
+<% } %>
+<% if (lowStock) { %>
+  <div class="status-banner" style="background:var(--amber-light);color:var(--amber);margin-bottom:14px;max-width:780px;border:1px solid var(--amber-border)">
+    ⚠ <%= t('reagents.alert.lowStock') %>
+  </div>
+<% } %>
+
+<!-- Main card -->
+<div class="detail-card">
+  <div class="detail-header">
+    <div>
+      <div class="detail-title"><%= item.nameRu %></div>
+      <% if (item.nameEn && item.nameEn !== item.nameRu) { %>
+        <div class="detail-subtitle"><%= item.nameEn %></div>
+      <% } %>
+    </div>
+    <div class="detail-actions">
+      <button type="button" class="btn btn-primary btn-sm btn-order"
+              data-entity-type="reagent"
+              data-entity-id="<%= item.id %>"
+              data-name-ru="<%= item.nameRu %>"
+              data-name-en="<%= item.nameEn || '' %>"
+              data-manufacturer="<%= item.manufacturer?.name || '' %>"
+              data-catalog-number="<%= item.catalogNumber || '' %>"
+              data-unit="<%= item.unit %>">
+        <%= t('btn.order') %>
+      </button>
+      <a href="/reagents/<%= item.id %>/edit" class="btn btn-ghost btn-sm"><%= t('btn.edit') %></a>
+      <form method="post" action="/reagents/<%= item.id %>/delete"
+            onsubmit="return confirm('<%= t('confirm.delete') %>')" style="display:inline">
+        <button type="submit" class="btn btn-danger btn-sm"><%= t('btn.delete') %></button>
+      </form>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <div class="detail-field">
+      <span class="detail-label"><%= t('reagents.field.casNumber') %></span>
+      <span class="detail-value mono"><%= item.casNumber || '—' %></span>
+    </div>
+    <div class="detail-field">
+      <span class="detail-label"><%= t('reagents.field.formula') %></span>
+      <span class="detail-value mono"><%= item.formula || '—' %></span>
+    </div>
+    <div class="detail-field">
+      <span class="detail-label"><%= t('reagents.field.manufacturer') %></span>
+      <span class="detail-value"><%= item.manufacturer?.name || '—' %></span>
+    </div>
+    <div class="detail-field">
+      <span class="detail-label"><%= t('reagents.field.catalogNumber') %></span>
+      <span class="detail-value mono"><%= item.catalogNumber || '—' %></span>
+    </div>
+    <div class="detail-field">
+      <span class="detail-label"><%= t('reagents.field.quantity') %></span>
+      <span class="detail-value <%= lowStock ? 'text-warn' : '' %>">
+        <strong><%= item.quantity %></strong> <%= item.unit %>
+        <% if (item.minQuantity != null) { %>
+          <span style="color:var(--text-muted);font-size:0.8rem"> (мин. <%= item.minQuantity %>)</span>
+        <% } %>
+      </span>
+    </div>
+    <div class="detail-field">
+      <span class="detail-label"><%= t('reagents.field.location') %></span>
+      <span class="detail-value">
+        <%= item.location ? (currentLang === 'ru' ? item.location.nameRu : item.location.nameEn) : '—' %>
+      </span>
+    </div>
+    <div class="detail-field">
+      <span class="detail-label"><%= t('reagents.field.expiryDate') %></span>
+      <span class="detail-value <%= expired ? 'text-danger' : expSoon ? 'text-warn' : '' %>">
+        <%= fmtDate(item.expiryDate) || '—' %>
+      </span>
+    </div>
+    <div class="detail-field">
+      <span class="detail-label"><%= t('reagents.field.receivedDate') %></span>
+      <span class="detail-value"><%= fmtDate(item.receivedDate) || '—' %></span>
+    </div>
+    <% if (item.notes) { %>
+    <div class="detail-field" style="grid-column:1/-1">
+      <span class="detail-label"><%= t('reagents.field.notes') %></span>
+      <span class="detail-value"><%= item.notes %></span>
+    </div>
+    <% } %>
+    <div class="detail-field">
+      <span class="detail-label"><%= t('field.createdBy') %></span>
+      <span class="detail-value"><%= item.creator?.displayName || '—' %></span>
+    </div>
+  </div>
+</div>
+
+<!-- Attachments -->
+<div class="attachment-section">
+  <div class="attachment-section-title"><%= t('attachments.title') %></div>
+
+  <% if (attachments.length > 0) { %>
+    <div class="attachment-list">
+      <% attachments.forEach(att => { %>
+        <div class="attachment-row">
+          <a class="attachment-name" href="/uploads/<%= att.filepath %>" target="_blank"><%= att.filename %></a>
+          <span style="font-size:0.75rem;color:var(--text-muted)">
+            <%= new Date(att.uploadedAt).toLocaleDateString(currentLang === 'ru' ? 'ru-RU' : 'en-GB') %>
+          </span>
+          <form method="post" action="/reagents/<%= item.id %>/attachments/<%= att.id %>/delete"
+                onsubmit="return confirm('<%= t('attachments.confirmDelete') %>')" style="display:inline">
+            <button type="submit" class="attachment-del"><%= t('btn.delete') %></button>
+          </form>
+        </div>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <p class="empty-text" style="text-align:left;padding:0;margin-bottom:14px"><%= t('attachments.empty') %></p>
+  <% } %>
+
+  <form method="post" action="/reagents/<%= item.id %>/attachments" enctype="multipart/form-data"
+        style="display:flex;gap:8px;align-items:center">
+    <input type="file" name="file" id="attach-file" style="font-size:0.82rem">
+    <button type="submit" class="btn btn-ghost btn-sm"><%= t('attachments.upload') %></button>
+  </form>
+</div>
+
+<div>
+  <a href="/reagents" class="btn btn-ghost btn-sm">← <%= t('btn.back') %></a>
+</div>
+
+<%- include('../layouts/bottom') %>

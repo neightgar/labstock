@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="<%= currentLang %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LabStock</title>
+  <link rel="icon" type="image/png" href="/img/labstock.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="auth-body">
+<div class="auth-wrap">
+  <div class="auth-card">
+
+<div class="auth-logo">
+  <img src="/img/labstock.png" alt="LabStock" width="64" height="64" />
+</div>
+
+    <h1 class="auth-title">LabStock</h1>
+
+    <% if (error) { %>
+      <div class="auth-error"><%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/login" class="auth-form">
+      <label class="field">
+        <span class="field-label"><%= t('field.username') %></span>
+        <input type="text" name="username" autocomplete="username" autofocus required
+               placeholder="<%= t('placeholder.username') %>">
+      </label>
+      <label class="field">
+        <span class="field-label"><%= t('field.password') %></span>
+        <input type="password" name="password" autocomplete="current-password" required>
+      </label>
+      <button type="submit" class="btn btn-primary btn-full"><%= t('auth.login.btn') %></button>
+    </form>
+
+  </div>
+</div>
+</body>
+</html>

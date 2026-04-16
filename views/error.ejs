@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="<%= typeof currentLang !== 'undefined' ? currentLang : 'ru' %>">
+<head>
+  <meta charset="UTF-8">
+  <title>Ошибка <%= code %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="auth-body">
+<div class="auth-wrap">
+  <div class="auth-card" style="text-align:center">
+    <p style="font-size:3rem;font-weight:700;color:var(--text-muted);margin-bottom:8px"><%= code %></p>
+    <p style="color:var(--text-soft);margin-bottom:24px"><%= message %></p>
+    <a href="/" class="btn btn-primary">← На главную</a>
+  </div>
+</div>
+</body>
+</html>

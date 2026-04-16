@@ -1,0 +1,91 @@
+<%
+  const isEdit = item != null;
+  pageTitle   = isEdit ? t('equipment.editTitle') : t('equipment.newTitle');
+  active      = 'equipment';
+  const action = isEdit ? `/equipment/${item.id}` : '/equipment';
+%>
+<%- include('../layouts/top', { pageTitle, active }) %>
+
+<div style="margin-bottom:16px">
+  <a href="<%= isEdit ? '/equipment/' + item.id : '/equipment' %>" class="btn btn-ghost btn-sm">← <%= t('btn.back') %></a>
+</div>
+
+<% if (error) { %>
+  <div class="status-banner is-error" style="margin-bottom:16px;max-width:760px"><%= error %></div>
+<% } %>
+
+<form method="post" action="<%= action %>" class="form-card">
+
+  <p class="form-section-title"><%= t('reagents.section.basic') %></p>
+
+  <div class="field-row">
+    <div class="field">
+      <label class="field-label"><%= t('reagents.field.nameRu') %> *</label>
+      <input type="text" name="nameRu" required value="<%= item?.nameRu || '' %>" placeholder="Название на русском">
+    </div>
+    <div class="field">
+      <label class="field-label"><%= t('reagents.field.nameEn') %> *</label>
+      <input type="text" name="nameEn" required value="<%= item?.nameEn || '' %>" placeholder="Name in English">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label class="field-label"><%= t('equipment.field.model') %></label>
+      <input type="text" name="model" value="<%= item?.model || '' %>" placeholder="Модель / артикул">
+    </div>
+    <div class="field">
+      <label class="field-label"><%= t('equipment.field.serialNumber') %></label>
+      <input type="text" name="serialNumber" value="<%= item?.serialNumber || '' %>" placeholder="Серийный номер">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label class="field-label"><%= t('reagents.field.manufacturer') %></label>
+      <select name="manufacturerId">
+        <option value="">— <%= t('reagents.field.manufacturer') %> —</option>
+        <% manufacturers.forEach(m => { %>
+          <option value="<%= m.id %>" <%= item?.manufacturerId === m.id ? 'selected' : '' %>><%= m.name %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="field">
+      <label class="field-label"><%= t('reagents.field.location') %></label>
+      <select name="locationId">
+        <option value="">— <%= t('reagents.field.location') %> —</option>
+        <% locations.forEach(loc => { %>
+          <option value="<%= loc.id %>" <%= item?.locationId === loc.id ? 'selected' : '' %>>
+            <%= currentLang === 'ru' ? loc.nameRu : loc.nameEn %>
+          </option>
+        <% }) %>
+      </select>
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="field-label"><%= t('equipment.field.status') %></label>
+    <select name="status">
+      <% VALID_STATUSES.forEach(st => { %>
+        <option value="<%= st %>" <%= (item?.status || 'WORKING') === st ? 'selected' : '' %>>
+          <%
+            const labels = { WORKING: t('equipment.status.working'), REPAIR: t('equipment.status.repair'), DECOMMISSIONED: t('equipment.status.decommissioned') };
+          %><%= labels[st] || st %>
+        </option>
+      <% }) %>
+    </select>
+  </div>
+
+  <div class="field">
+    <label class="field-label"><%= t('reagents.field.notes') %></label>
+    <textarea name="notes" rows="3"><%= item?.notes || '' %></textarea>
+  </div>
+
+  <div class="form-actions">
+    <a href="<%= isEdit ? '/equipment/' + item.id : '/equipment' %>" class="btn btn-ghost"><%= t('btn.cancel') %></a>
+    <button type="submit" class="btn btn-primary"><%= t('btn.save') %></button>
+  </div>
+
+</form>
+
+<%- include('../layouts/bottom') %>

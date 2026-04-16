@@ -1,0 +1,63 @@
+<%
+  pageTitle    = t('trash.title');
+  pageSubtitle = t('trash.subtitle');
+  active       = 'trash';
+  const totalDeleted = reagents.length + consumables.length + equipment.length;
+%>
+<%- include('layouts/top', { pageTitle, active }) %>
+
+<% if (totalDeleted === 0) { %>
+  <div style="text-align:center;padding:48px 0;color:var(--text-muted)">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;opacity:0.4"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+    <p><%= t('trash.empty') %></p>
+  </div>
+<% } %>
+
+<%
+  function trashGroup(groupTitle, items, type, backUrl) {
+    if (items.length === 0) return '';
+    let html = `<div class="trash-group">
+      <div class="trash-group-title">${groupTitle} (${items.length})</div>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>Название</th>
+            <th>Дата удаления</th>
+            <th></th>
+          </tr></thead>
+          <tbody>`;
+    for (const item of items) {
+      const delDate = item.deletedAt ? new Date(item.deletedAt).toLocaleDateString('ru-RU') : '—';
+      html += `<tr>
+        <td>
+          <div class="cell-name">${item.nameRu}</div>
+          ${item.nameEn && item.nameEn !== item.nameRu ? `<div class="cell-sub">${item.nameEn}</div>` : ''}
+        </td>
+        <td class="cell-mono">${delDate}</td>
+        <td>
+          <div class="table-actions">
+            <form method="post" action="/trash/${type}/${item.id}/restore" style="display:inline">
+              <button type="submit" class="btn btn-ghost btn-sm">${t('btn.restore')}</button>
+            </form>
+            <form method="post" action="/trash/${type}/${item.id}/force-delete" style="display:inline"
+                  onsubmit="return confirm('${t('trash.confirmForceDelete')}')">
+              <button type="submit" class="btn btn-danger btn-sm">${t('btn.forceDelete')}</button>
+            </form>
+          </div>
+        </td>
+      </tr>`;
+    }
+    html += '</tbody></table></div></div>';
+    return html;
+  }
+%>
+
+<%- trashGroup(t('trash.reagents'), reagents, 'reagent') %>
+<%- trashGroup(t('trash.consumables'), consumables, 'consumable') %>
+<%- trashGroup(t('trash.equipment'), equipment, 'equipment') %>
+
+<div style="margin-top:8px">
+  <a href="/" class="btn btn-ghost btn-sm">← <%= t('btn.back') %></a>
+</div>
+
+<%- include('layouts/bottom') %>

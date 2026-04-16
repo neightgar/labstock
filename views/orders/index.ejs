@@ -1,0 +1,214 @@
+<%
+  pageTitle    = t('orders.title');
+  pageSubtitle = t('orders.subtitle');
+  active       = 'orders';
+
+  var showWsCol = currentUser && currentUser.role === 'admin' && !currentUser.activeWorkspaceId;
+  function wsColor(id) { return 'ws-c' + ((((id||1)-1)%8)+1); }
+  function wsLabel(ws) {
+    if (!ws) return '';
+    return currentLang === 'en' ? (ws.nameEn || ws.nameRu) : ws.nameRu;
+  }
+%>
+<%- include('../layouts/top', { pageTitle, active }) %>
+
+<!-- Feedback banners -->
+<% if (query.added) { %>
+  <div class="status-banner" style="margin-bottom:14px"><%= t('orders.added') %></div>
+<% } %>
+<% if (query.deleted) { %>
+  <div class="status-banner" style="margin-bottom:14px"><%= t('feedback.deleted') %>: <%= query.deleted %></div>
+<% } %>
+<% if (query.error) { %>
+  <div class="status-banner is-error" style="margin-bottom:14px"><%= query.error %></div>
+<% } %>
+
+<!-- Toolbar -->
+<div class="page-toolbar">
+  <div class="toolbar-actions">
+    <button type="button" id="btn-select-all" class="btn btn-ghost btn-sm">
+      <%= t('orders.selectAll') %>
+    </button>
+    <button type="button" id="btn-export" class="btn btn-ghost btn-sm" disabled>
+      ↓ <%= t('orders.exportSelected') %>
+    </button>
+    <button type="button" id="btn-delete" class="btn btn-danger btn-sm" disabled>
+      <%= t('orders.deleteSelected') %>
+    </button>
+    <button type="button" class="btn btn-primary btn-sm btn-order"
+            data-entity-type="manual"
+            data-entity-id=""
+            data-name-ru=""  data-name-en=""
+            data-manufacturer=""  data-catalog-number=""  data-unit="">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <%= t('orders.addManual') %>
+    </button>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="data-table-wrap">
+  <% if (items.length === 0) { %>
+    <p class="empty-text"><%= t('orders.empty') %></p>
+  <% } else { %>
+  <table class="data-table" id="orders-table">
+    <thead>
+      <tr>
+        <th class="col-check"><input type="checkbox" id="check-all" title="<%= t('orders.selectAll') %>"></th>
+        <th><%= t('orders.col.name') %></th>
+        <th><%= t('orders.col.quantity') %></th>
+        <th><%= t('orders.col.unit') %></th>
+        <th><%= t('orders.col.manufacturer') %></th>
+        <th><%= t('orders.col.catalogNumber') %></th>
+        <th><%= t('orders.col.notes') %></th>
+        <th><%= t('orders.col.addedBy') %></th>
+        <th><%= t('orders.col.date') %></th>
+        <% if (showWsCol) { %><th><%= t('admin.workspace.col') %></th><% } %>
+      </tr>
+    </thead>
+    <tbody>
+      <% items.forEach(function(item) { %>
+      <tr>
+        <td class="col-check">
+          <input type="checkbox" name="ids" value="<%= item.id %>" class="row-check">
+        </td>
+        <td>
+          <div class="cell-name"><%= item.nameRu %></div>
+          <% if (item.nameEn && item.nameEn !== item.nameRu) { %>
+            <div class="cell-sub"><%= item.nameEn %></div>
+          <% } %>
+        </td>
+        <td class="cell-mono"><%= item.quantity %></td>
+        <td><%= item.unit %></td>
+        <td><%= item.manufacturer || '—' %></td>
+        <td class="cell-mono"><%= item.catalogNumber || '—' %></td>
+        <td style="max-width:200px;white-space:pre-wrap;word-break:break-word"><%= item.notes || '—' %></td>
+        <td><%= item.creator?.displayName || '—' %></td>
+        <td class="cell-mono" style="white-space:nowrap">
+          <%= new Date(item.createdAt).toLocaleDateString('ru-RU') %>
+        </td>
+        <% if (showWsCol) { %>
+        <td><% if (item.workspace) { %><span class="ws-badge <%= wsColor(item.workspace.id) %>"><%= wsLabel(item.workspace) %></span><% } else { %>—<% } %></td>
+        <% } %>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+
+<!-- Pagination -->
+<% if (pages > 1) { %>
+<%
+  function qs(overrides) {
+    const p = Object.assign({}, query, overrides);
+    return Object.entries(p)
+      .filter(function(e) { return e[1] !== '' && e[1] != null; })
+      .map(function(e) { return encodeURIComponent(e[0]) + '=' + encodeURIComponent(e[1]); })
+      .join('&');
+  }
+%>
+<div class="pagination">
+  <% if (page > 1) { %>
+    <a class="pag-btn" href="/orders?<%= qs({ page: page - 1 }) %>">←</a>
+  <% } else { %>
+    <span class="pag-btn is-disabled">←</span>
+  <% } %>
+  <% for (let p = 1; p <= pages; p++) {
+    if (p === 1 || p === pages || Math.abs(p - page) <= 1) { %>
+      <a class="pag-btn <%= p === page ? 'is-active' : '' %>" href="/orders?<%= qs({ page: p }) %>"><%= p %></a>
+    <% } else if (Math.abs(p - page) === 2) { %>
+      <span class="pag-btn is-disabled">…</span>
+    <% } %>
+  <% } %>
+  <% if (page < pages) { %>
+    <a class="pag-btn" href="/orders?<%= qs({ page: page + 1 }) %>">→</a>
+  <% } else { %>
+    <span class="pag-btn is-disabled">→</span>
+  <% } %>
+  <span class="pag-info"><%= total %> <%= t('pagination.total') %></span>
+</div>
+<% } %>
+
+<script>
+(function () {
+  var checkAll  = document.getElementById('check-all');
+  var btnExport = document.getElementById('btn-export');
+  var btnDelete = document.getElementById('btn-delete');
+  var btnSelAll = document.getElementById('btn-select-all');
+
+  function getChecked() {
+    return Array.from(document.querySelectorAll('.row-check:checked')).map(function (cb) { return cb.value; });
+  }
+
+  function updateButtons() {
+    var n = getChecked().length;
+    if (btnExport) btnExport.disabled = n === 0;
+    if (btnDelete) btnDelete.disabled = n === 0;
+    if (btnSelAll) btnSelAll.textContent = n > 0 ? '<%= t("orders.clearAll") %>' : '<%= t("orders.selectAll") %>';
+    if (checkAll) {
+      var all = document.querySelectorAll('.row-check');
+      checkAll.checked = all.length > 0 && n === all.length;
+      checkAll.indeterminate = n > 0 && n < all.length;
+    }
+  }
+
+  function submitWithIds(action, ids) {
+    var form = document.createElement('form');
+    form.method = 'post';
+    form.action = action;
+    ids.forEach(function (id) {
+      var inp = document.createElement('input');
+      inp.type  = 'hidden';
+      inp.name  = 'ids';
+      inp.value = id;
+      form.appendChild(inp);
+    });
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  document.querySelectorAll('.row-check').forEach(function (cb) {
+    cb.addEventListener('change', updateButtons);
+  });
+
+  if (checkAll) {
+    checkAll.addEventListener('change', function () {
+      document.querySelectorAll('.row-check').forEach(function (cb) {
+        cb.checked = checkAll.checked;
+      });
+      updateButtons();
+    });
+  }
+
+  if (btnSelAll) {
+    btnSelAll.addEventListener('click', function () {
+      var all    = document.querySelectorAll('.row-check');
+      var anyOn  = getChecked().length > 0;
+      all.forEach(function (cb) { cb.checked = !anyOn; });
+      updateButtons();
+    });
+  }
+
+  if (btnExport) {
+    btnExport.addEventListener('click', function () {
+      var ids = getChecked();
+      if (!ids.length) return;
+      submitWithIds('/orders/export', ids);
+    });
+  }
+
+  if (btnDelete) {
+    btnDelete.addEventListener('click', function () {
+      var ids = getChecked();
+      if (!ids.length) return;
+      if (!confirm('<%= t("confirm.delete") %>')) return;
+      submitWithIds('/orders/delete', ids);
+    });
+  }
+
+  updateButtons();
+}());
+</script>
+
+<%- include('../layouts/bottom') %>

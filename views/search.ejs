@@ -1,0 +1,51 @@
+<%
+  active = '';
+  pageSubtitle = query ? '"' + query + '"' : '';
+%>
+<%- include('layouts/top', { pageTitle, active }) %>
+
+<% if (!query) { %>
+  <div class="empty-state">
+    <div class="empty-state-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+    <div class="empty-state-title"><%= t('search.noResults') %></div>
+  </div>
+<% } else if (total === 0) { %>
+  <div class="empty-state">
+    <div class="empty-state-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+    <div class="empty-state-title"><%= t('search.noResults') %></div>
+    <div class="empty-state-sub"><%= query %></div>
+  </div>
+<% } else { %>
+
+<% [['reagents', results.reagents], ['consumables', results.consumables], ['equipment', results.equipment], ['protocols', results.protocols]].forEach(([cat, items]) => { %>
+  <% if (!items || !items.length) return; %>
+  <div class="ref-section">
+    <div class="ref-section-header">
+      <div class="ref-section-title"><%= labels[cat] || cat %></div>
+    </div>
+    <div class="ref-list">
+      <% items.forEach(item => {
+        const href = '/' + cat + '/' + item.id;
+        const name = item.nameRu || item.titleRu || '';
+        const sub  = item.nameEn || item.titleEn || item.casNumber || item.model || '';
+      %>
+      <div class="ref-row">
+        <div class="ref-row-view">
+          <a href="<%= href %>" class="ref-name"><%= name %></a>
+          <% if (sub && sub !== name) { %>
+            <span class="ref-name-alt"><%= sub %></span>
+          <% } %>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+<% }) %>
+
+<% } %>
+
+<%- include('layouts/bottom') %>

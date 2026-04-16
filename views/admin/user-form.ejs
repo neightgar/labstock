@@ -1,0 +1,143 @@
+<%
+  const isNew = mode === 'new';
+  pageTitle    = isNew ? t('admin.users.newTitle') : t('admin.users.editTitle');
+  pageSubtitle = '';
+  active = 'admin';
+  extraScripts = '';
+%>
+<%- include('../layouts/top', { pageTitle, active, extraScripts }) %>
+
+<% if (error) { %>
+  <div class="status-banner is-error" style="margin-bottom:20px"><%= error %></div>
+<% } %>
+<% if (typeof req !== 'undefined' && req.query && req.query.error === 'weak_password') { %>
+  <div class="status-banner is-error" style="margin-bottom:20px"><%= t('admin.error.weakPassword') %></div>
+<% } %>
+
+<div style="max-width:560px">
+
+  <form method="POST"
+        action="<%= isNew ? '/admin/users' : '/admin/users/' + user.id + '/update' %>"
+        class="settings-card">
+
+    <div class="settings-card-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+    <h2 class="settings-card-title"><%= pageTitle %></h2>
+
+    <div class="form-stack">
+
+      <% if (isNew) { %>
+        <label class="field">
+          <span class="field-label"><%= t('field.username') %> *</span>
+          <input type="text" name="username"
+                 value="<%= user?.username || '' %>"
+                 autocomplete="off" required>
+        </label>
+      <% } else { %>
+        <div class="field">
+          <span class="field-label"><%= t('field.username') %></span>
+          <input type="text" value="<%= user.username %>" disabled class="field-disabled">
+        </div>
+      <% } %>
+
+      <label class="field">
+        <span class="field-label"><%= t('field.displayName') %> *</span>
+        <input type="text" name="displayName"
+               value="<%= user?.displayName || '' %>" required>
+      </label>
+
+      <% if (isNew) { %>
+        <label class="field">
+          <span class="field-label"><%= t('admin.field.initialPassword') %> *</span>
+          <input type="password" name="password" autocomplete="new-password" required>
+        </label>
+      <% } %>
+
+      <label class="field">
+        <span class="field-label"><%= t('admin.col.role') %></span>
+        <select name="role" class="select-sm" style="width:100%">
+          <option value="user"  <%= (user?.role || 'user') === 'user'  ? 'selected' : '' %>><%= t('admin.role.user') %></option>
+          <option value="admin" <%= (user?.role || 'user') === 'admin' ? 'selected' : '' %>><%= t('admin.role.admin') %></option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span class="field-label"><%= t('field.language') %></span>
+        <div class="filters" style="width:fit-content">
+          <% availableLangs.forEach(function(langCode) { %>
+            <label class="filter <%= (user?.language || 'ru') === langCode ? 'is-active' : '' %>" style="cursor:pointer">
+              <input type="radio" name="language" value="<%= langCode %>"
+                     <%= (user?.language || 'ru') === langCode ? 'checked' : '' %>
+                     style="position:absolute;opacity:0;pointer-events:none">
+              <%= t('lang.' + langCode) %>
+            </label>
+          <% }); %>
+        </div>
+      </label>
+
+      <!-- Workspace assignment (only for non-admin users) -->
+      <div id="wsFieldWrap">
+        <div class="field-label" style="margin-bottom:8px"><%= t('admin.workspace.assignLabel') %></div>
+        <div style="display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto;padding:2px">
+          <% workspaces.forEach(function(ws) { %>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem">
+              <input type="checkbox" name="workspaceIds" value="<%= ws.id %>"
+                     <%= (userWorkspaceIds || []).includes(ws.id) ? 'checked' : '' %>
+                     style="accent-color:var(--accent)">
+              <span><%= ws.nameRu %></span>
+              <span style="color:var(--text-muted);font-size:0.8rem">/ <%= ws.nameEn %></span>
+            </label>
+          <% }); %>
+          <% if (!workspaces.length) { %>
+            <span class="field-hint"><%= t('admin.workspace.none') %></span>
+          <% } %>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button type="submit" class="btn btn-primary"><%= t('btn.save') %></button>
+      <a href="/admin" class="btn btn-ghost"><%= t('btn.cancel') %></a>
+    </div>
+
+  </form>
+
+  <script>
+    (function() {
+      const roleSelect = document.querySelector('select[name="role"]');
+      const wsWrap     = document.getElementById('wsFieldWrap');
+      function toggleWs() {
+        wsWrap.style.display = roleSelect.value === 'admin' ? 'none' : '';
+      }
+      roleSelect.addEventListener('change', toggleWs);
+      toggleWs();
+    })();
+  </script>
+
+  <!-- Reset password (edit mode only) -->
+  <% if (!isNew) { %>
+    <div class="settings-card" style="margin-top:20px">
+      <div class="settings-card-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h2 class="settings-card-title"><%= t('admin.users.resetPassword') %></h2>
+      <form method="POST" action="/admin/users/<%= user.id %>/reset-password" class="form-stack">
+        <label class="field">
+          <span class="field-label"><%= t('field.newPassword') %></span>
+          <input type="password" name="newPassword" autocomplete="new-password" required>
+        </label>
+        <div>
+          <button type="submit" class="btn btn-secondary btn-sm"
+                  onclick="return confirm('<%= t('admin.users.resetConfirm') %>')">
+            <%= t('admin.users.resetPassword') %>
+          </button>
+        </div>
+      </form>
+    </div>
+  <% } %>
+
+</div>
+
+<%- include('../layouts/bottom') %>

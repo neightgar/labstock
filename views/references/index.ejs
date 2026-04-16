@@ -1,0 +1,178 @@
+<%
+  pageTitle = t('references.title');
+  pageSubtitle = t('references.subtitle');
+  active = 'references';
+  extraScripts = '<script src="/js/references.js" defer></script>';
+%>
+<%- include('../layouts/top', { pageTitle, active, extraScripts }) %>
+
+<div id="feedback" class="status-banner" hidden></div>
+
+<!-- ═══ Locations ═══════════════════════════════════════════ -->
+<section class="ref-section">
+  <div class="ref-section-header">
+    <h2 class="ref-section-title"><%= t('references.locations') %></h2>
+    <button type="button" class="btn btn-sm" data-open-add="location"><%= t('references.add') %></button>
+  </div>
+
+  <!-- Add form (hidden by default) -->
+  <div class="ref-add-form" id="add-location" hidden>
+    <div class="field-row">
+      <label class="field">
+        <span class="field-label"><%= t('references.nameRu') %></span>
+        <input type="text" id="loc-nameRu" placeholder="Холодильник №1">
+      </label>
+      <label class="field">
+        <span class="field-label"><%= t('references.nameEn') %></span>
+        <input type="text" id="loc-nameEn" placeholder="Refrigerator #1">
+      </label>
+    </div>
+    <div class="ref-form-actions">
+      <button type="button" class="btn btn-ghost" data-cancel-add="location"><%= t('btn.cancel') %></button>
+      <button type="button" class="btn btn-primary" data-save-add="location"><%= t('btn.add') %></button>
+    </div>
+  </div>
+
+  <div class="ref-list" id="locations-list">
+    <% if (locations.length === 0) { %>
+      <div class="empty-text"><%= t('references.empty') %></div>
+    <% } else { %>
+      <% locations.forEach(function(loc) { %>
+        <div class="ref-row" data-id="<%= loc.id %>" data-type="location">
+          <div class="ref-row-view">
+            <span class="ref-name"><%= currentLang === 'en' ? loc.nameEn : loc.nameRu %></span>
+            <span class="ref-name-alt"><%= currentLang === 'en' ? loc.nameRu : loc.nameEn %></span>
+            <div class="ref-actions">
+              <button type="button" class="med-action" data-edit><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+              <button type="button" class="med-action danger" data-delete><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+            </div>
+          </div>
+          <div class="ref-row-edit" hidden>
+            <input type="text" class="edit-nameRu" value="<%= loc.nameRu %>">
+            <input type="text" class="edit-nameEn" value="<%= loc.nameEn %>">
+            <div class="ref-actions">
+              <button type="button" class="btn btn-ghost btn-sm" data-cancel-edit><%= t('btn.cancel') %></button>
+              <button type="button" class="btn btn-primary btn-sm" data-save-edit><%= t('btn.save') %></button>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    <% } %>
+  </div>
+</section>
+
+<!-- ═══ Manufacturers ═════════════════════════════════════ -->
+<section class="ref-section">
+  <div class="ref-section-header">
+    <h2 class="ref-section-title"><%= t('references.manufacturers') %></h2>
+    <button type="button" class="btn btn-sm" data-open-add="manufacturer"><%= t('references.add') %></button>
+  </div>
+
+  <div class="ref-add-form" id="add-manufacturer" hidden>
+    <div class="field-row">
+      <label class="field" style="grid-column:1/-1">
+        <span class="field-label"><%= t('references.name') %></span>
+        <input type="text" id="mfr-name" placeholder="Sigma-Aldrich">
+      </label>
+    </div>
+    <div class="ref-form-actions">
+      <button type="button" class="btn btn-ghost" data-cancel-add="manufacturer"><%= t('btn.cancel') %></button>
+      <button type="button" class="btn btn-primary" data-save-add="manufacturer"><%= t('btn.add') %></button>
+    </div>
+  </div>
+
+  <div class="ref-list" id="manufacturers-list">
+    <% if (manufacturers.length === 0) { %>
+      <div class="empty-text"><%= t('references.empty') %></div>
+    <% } else { %>
+      <% manufacturers.forEach(function(mfr) { %>
+        <div class="ref-row" data-id="<%= mfr.id %>" data-type="manufacturer">
+          <div class="ref-row-view">
+            <span class="ref-name"><%= mfr.name %></span>
+            <div class="ref-actions">
+              <button type="button" class="med-action" data-edit><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+              <button type="button" class="med-action danger" data-delete><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+            </div>
+          </div>
+          <div class="ref-row-edit" hidden>
+            <input type="text" class="edit-name" value="<%= mfr.name %>">
+            <div class="ref-actions">
+              <button type="button" class="btn btn-ghost btn-sm" data-cancel-edit><%= t('btn.cancel') %></button>
+              <button type="button" class="btn btn-primary btn-sm" data-save-edit><%= t('btn.save') %></button>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    <% } %>
+  </div>
+</section>
+
+<!-- ═══ Item Types ════════════════════════════════════════ -->
+<section class="ref-section">
+  <div class="ref-section-header">
+    <h2 class="ref-section-title"><%= t('references.itemTypes') %></h2>
+    <button type="button" class="btn btn-sm" data-open-add="itemtype"><%= t('references.add') %></button>
+  </div>
+
+  <div class="ref-add-form" id="add-itemtype" hidden>
+    <div class="field-row">
+      <label class="field">
+        <span class="field-label"><%= t('references.nameRu') %></span>
+        <input type="text" id="itype-nameRu" placeholder="Пробирки">
+      </label>
+      <label class="field">
+        <span class="field-label"><%= t('references.nameEn') %></span>
+        <input type="text" id="itype-nameEn" placeholder="Tubes">
+      </label>
+    </div>
+    <div class="field-row">
+      <label class="field" style="grid-column:1/-1">
+        <span class="field-label"><%= t('references.category') %></span>
+        <select id="itype-category">
+          <option value="consumable"><%= t('references.category.consumable') %></option>
+          <option value="glassware"><%= t('references.category.glassware') %></option>
+        </select>
+      </label>
+    </div>
+    <div class="ref-form-actions">
+      <button type="button" class="btn btn-ghost" data-cancel-add="itemtype"><%= t('btn.cancel') %></button>
+      <button type="button" class="btn btn-primary" data-save-add="itemtype"><%= t('btn.add') %></button>
+    </div>
+  </div>
+
+  <div class="ref-list" id="item-types-list">
+    <% if (itemTypes.length === 0) { %>
+      <div class="empty-text"><%= t('references.empty') %></div>
+    <% } else { %>
+      <% itemTypes.forEach(function(it) { %>
+        <div class="ref-row" data-id="<%= it.id %>" data-type="itemtype">
+          <div class="ref-row-view">
+            <span class="ref-name"><%= currentLang === 'en' ? it.nameEn : it.nameRu %></span>
+            <span class="ref-name-alt"><%= currentLang === 'en' ? it.nameRu : it.nameEn %></span>
+            <span class="ref-badge"><%= t('references.category.' + it.category) %></span>
+            <div class="ref-actions">
+              <button type="button" class="med-action" data-edit><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+              <button type="button" class="med-action danger" data-delete><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+            </div>
+          </div>
+          <div class="ref-row-edit" hidden>
+            <input type="text" class="edit-nameRu" value="<%= it.nameRu %>">
+            <input type="text" class="edit-nameEn" value="<%= it.nameEn %>">
+            <select class="edit-category">
+              <option value="consumable" <%= it.category === 'consumable' ? 'selected' : '' %>><%= t('references.category.consumable') %></option>
+              <option value="glassware" <%= it.category === 'glassware' ? 'selected' : '' %>><%= t('references.category.glassware') %></option>
+            </select>
+            <div class="ref-actions">
+              <button type="button" class="btn btn-ghost btn-sm" data-cancel-edit><%= t('btn.cancel') %></button>
+              <button type="button" class="btn btn-primary btn-sm" data-save-edit><%= t('btn.save') %></button>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    <% } %>
+  </div>
+</section>
+
+<div style="padding-bottom:40px"></div>
+
+<%- include('../layouts/bottom') %>

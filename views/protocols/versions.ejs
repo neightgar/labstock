@@ -1,0 +1,61 @@
+<%
+  pageTitle = t('protocols.versions') + ': ' + protocol.titleRu;
+  active    = 'protocols';
+%>
+<%- include('../layouts/top', { pageTitle, active }) %>
+
+<div style="margin-bottom:16px;display:flex;align-items:center;gap:12px">
+  <a href="/protocols/<%= protocol.id %>" class="btn btn-ghost btn-sm">← <%= t('btn.back') %></a>
+  <h2 style="font-size:1rem;font-weight:600;color:var(--text);margin:0">
+    <%= t('protocols.versions') %>: <%= protocol.titleRu %>
+  </h2>
+</div>
+
+<div class="data-table-wrap">
+  <% if (versions.length === 0) { %>
+    <p class="empty-text"><%= t('protocols.versionsEmpty') %></p>
+  <% } else { %>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th><%= t('protocols.col.version') %></th>
+        <th><%= t('protocols.col.title') %></th>
+        <th><%= t('protocols.col.changedBy') %></th>
+        <th><%= t('protocols.col.changedAt') %></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% versions.forEach(function(v) { %>
+      <tr>
+        <td class="cell-mono">
+          v<%= v.version %>
+          <% if (v.version === protocol.version) { %>
+            <span class="ref-badge" style="margin-left:4px"><%= t('protocols.current') %></span>
+          <% } %>
+        </td>
+        <td>
+          <div class="cell-name"><%= v.titleRu %></div>
+          <% if (v.titleEn && v.titleEn !== v.titleRu) { %>
+            <div class="cell-sub"><%= v.titleEn %></div>
+          <% } %>
+        </td>
+        <td><%= v.changer?.displayName || '—' %></td>
+        <td class="cell-mono" style="white-space:nowrap">
+          <%= new Date(v.createdAt).toLocaleDateString('ru-RU') %>
+          <span style="color:var(--text-muted);font-size:0.8rem">
+            <%= new Date(v.createdAt).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'}) %>
+          </span>
+        </td>
+        <td>
+          <a href="/protocols/<%= protocol.id %>/versions/<%= v.version %>"
+             class="btn btn-ghost btn-sm"><%= t('btn.view') %></a>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+
+<%- include('../layouts/bottom') %>

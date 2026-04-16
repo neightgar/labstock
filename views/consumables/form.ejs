@@ -1,0 +1,149 @@
+<%
+  const isEdit = item != null;
+  pageTitle   = isEdit ? t('consumables.editTitle') : t('consumables.newTitle');
+  active      = 'consumables';
+  const action = isEdit ? `/consumables/${item.id}` : '/consumables';
+
+  function fmtDateInput(dt) {
+    if (!dt) return '';
+    return new Date(dt).toISOString().slice(0, 10);
+  }
+%>
+<%- include('../layouts/top', { pageTitle, active }) %>
+
+<div style="margin-bottom:16px">
+  <a href="<%= isEdit ? '/consumables/' + item.id : '/consumables' %>" class="btn btn-ghost btn-sm">← <%= t('btn.back') %></a>
+</div>
+
+<% if (error) { %>
+  <div class="status-banner is-error" style="margin-bottom:16px;max-width:760px"><%= error %></div>
+<% } %>
+
+<form method="post" action="<%= action %>" class="form-card">
+
+  <p class="form-section-title"><%= t('reagents.section.basic') %></p>
+
+  <div class="field-row">
+    <div class="field">
+      <label class="field-label"><%= t('reagents.field.nameRu') %> *</label>
+      <input type="text" name="nameRu" required value="<%= item?.nameRu || '' %>" placeholder="Название на русском">
+    </div>
+    <div class="field">
+      <label class="field-label"><%= t('reagents.field.nameEn') %> *</label>
+      <input type="text" name="nameEn" required value="<%= item?.nameEn || '' %>" placeholder="Name in English">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label class="field-label"><%= t('consumables.field.type') %></label>
+      <select name="typeId">
+        <option value="">— <%= t('consumables.field.type') %> —</option>
+        <% itemTypes.forEach(it => { %>
+          <option value="<%= it.id %>" <%= item?.typeId === it.id ? 'selected' : '' %>>
+            <%= currentLang === 'ru' ? it.nameRu : it.nameEn %>
+          </option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="field">
+      <label class="field-label"><%= t('reagents.field.manufacturer') %></label>
+      <select name="manufacturerId">
+        <option value="">— <%= t('reagents.field.manufacturer') %> —</option>
+        <% manufacturers.forEach(m => { %>
+          <option value="<%= m.id %>" <%= item?.manufacturerId === m.id ? 'selected' : '' %>><%= m.name %></option>
+        <% }) %>
+      </select>
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label class="field-label"><%= t('reagents.field.catalogNumber') %></label>
+      <input type="text" name="catalogNumber" value="<%= item?.catalogNumber || '' %>">
+    </div>
+    <div class="field">
+      <label class="field-label"><%= t('consumables.field.lotNumber') %></label>
+      <input type="text" name="lotNumber" value="<%= item?.lotNumber || '' %>">
+    </div>
+  </div>
+
+  <p class="form-section-title" style="margin-top:4px"><%= t('reagents.section.stock') %></p>
+
+  <div class="field-row">
+    <div class="field">
+      <label class="field-label"><%= t('reagents.field.quantity') %> *</label>
+      <input type="number" name="quantity" required value="<%= item?.quantity ?? '' %>" min="0" placeholder="0">
+    </div>
+    <div class="field">
+      <label class="field-label"><%= t('reagents.field.unit') %> *</label>
+      <input type="text" name="unit" required value="<%= item?.unit || '' %>" list="units-list" placeholder="шт, упак...">
+      <datalist id="units-list">
+        <option value="шт"><option value="упак"><option value="пара"><option value="рулон">
+        <option value="бокс"><option value="мл"><option value="л">
+      </datalist>
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label class="field-label"><%= t('reagents.field.minQuantity') %></label>
+      <input type="number" name="minQuantity" min="0" value="<%= item?.minQuantity ?? '' %>">
+    </div>
+    <div class="field">
+      <label class="field-label"><%= t('reagents.field.location') %></label>
+      <select name="locationId">
+        <option value="">— <%= t('reagents.field.location') %> —</option>
+        <% locations.forEach(loc => { %>
+          <option value="<%= loc.id %>" <%= item?.locationId === loc.id ? 'selected' : '' %>>
+            <%= currentLang === 'ru' ? loc.nameRu : loc.nameEn %>
+          </option>
+        <% }) %>
+      </select>
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label class="field-label"><%= t('reagents.field.expiryDate') %></label>
+      <input type="date" name="expiryDate" value="<%= fmtDateInput(item?.expiryDate) %>">
+    </div>
+    <div class="field">
+      <label class="field-label"><%= t('consumables.field.volume') %></label>
+      <input type="number" name="volume" step="any" min="0" value="<%= item?.volume ?? '' %>">
+    </div>
+  </div>
+
+  <p class="form-section-title" style="margin-top:4px"><%= t('consumables.section.properties') %></p>
+
+  <div class="field-row">
+    <div class="field">
+      <label class="field-label"><%= t('consumables.field.size') %></label>
+      <input type="text" name="size" value="<%= item?.size || '' %>" placeholder="e.g. 1.5 мл">
+    </div>
+    <div class="field">
+      <label class="field-label"><%= t('consumables.field.material') %></label>
+      <input type="text" name="material" value="<%= item?.material || '' %>" placeholder="полипропилен, стекло...">
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="field-label" style="flex-direction:row;align-items:center;gap:8px;cursor:pointer">
+      <input type="checkbox" name="sterile" <%= item?.sterile ? 'checked' : '' %> style="width:16px;height:16px">
+      <%= t('consumables.field.sterile') %>
+    </label>
+  </div>
+
+  <div class="field">
+    <label class="field-label"><%= t('reagents.field.notes') %></label>
+    <textarea name="notes" rows="3"><%= item?.notes || '' %></textarea>
+  </div>
+
+  <div class="form-actions">
+    <a href="<%= isEdit ? '/consumables/' + item.id : '/consumables' %>" class="btn btn-ghost"><%= t('btn.cancel') %></a>
+    <button type="submit" class="btn btn-primary"><%= t('btn.save') %></button>
+  </div>
+
+</form>
+
+<%- include('../layouts/bottom') %>

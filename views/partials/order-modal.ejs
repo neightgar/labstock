@@ -1,0 +1,160 @@
+<!-- ── i18n strings for frontend JS ───────────────────── -->
+<script id="i18n-strings" type="application/json">
+{
+  "search.placeholder":       "<%= t('search.placeholder').replace(/"/g,'&quot;') %>",
+  "search.noResults":         "<%= t('search.noResults').replace(/"/g,'&quot;') %>",
+  "search.category.reagents":    "<%= t('search.category.reagents').replace(/"/g,'&quot;') %>",
+  "search.category.consumables": "<%= t('search.category.consumables').replace(/"/g,'&quot;') %>",
+  "search.category.equipment":   "<%= t('search.category.equipment').replace(/"/g,'&quot;') %>",
+  "search.category.protocols":   "<%= t('search.category.protocols').replace(/"/g,'&quot;') %>",
+  "confirm.delete":           "<%= t('confirm.delete').replace(/"/g,'&quot;') %>",
+  "feedback.saved":           "<%= t('feedback.saved').replace(/"/g,'&quot;') %>",
+  "feedback.deleted":         "<%= t('feedback.deleted').replace(/"/g,'&quot;') %>",
+  "feedback.error":           "<%= t('feedback.error').replace(/"/g,'&quot;') %>"
+}
+</script>
+
+<!-- ── Order Modal ────────────────────────────────────── -->
+<div id="order-modal" class="modal-overlay"
+     data-success="<%= t('orders.added') %>"
+     role="dialog" aria-modal="true" aria-labelledby="om-title">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title" id="om-title"><%= t('orders.modal.title') %></span>
+      <button type="button" class="modal-close" id="om-close" aria-label="Close">✕</button>
+    </div>
+
+    <form id="order-modal-form" class="modal-form">
+      <input type="hidden" name="entityType" id="om-entityType" value="manual">
+      <input type="hidden" name="entityId"   id="om-entityId"   value="">
+
+      <div class="form-group">
+        <label class="form-label" for="om-nameRu"><%= t('orders.field.nameRu') %> *</label>
+        <input type="text" id="om-nameRu" name="nameRu" class="form-input" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="om-nameEn"><%= t('orders.field.nameEn') %></label>
+        <input type="text" id="om-nameEn" name="nameEn" class="form-input">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="om-quantity"><%= t('orders.field.quantity') %> *</label>
+          <input type="number" id="om-quantity" name="quantity" class="form-input"
+                 step="any" min="0.001" placeholder="0" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="om-unit"><%= t('orders.field.unit') %> *</label>
+          <input type="text" id="om-unit" name="unit" class="form-input" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="om-manufacturer"><%= t('orders.field.manufacturer') %></label>
+        <input type="text" id="om-manufacturer" name="manufacturer" class="form-input">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="om-catalogNumber"><%= t('orders.field.catalogNumber') %></label>
+        <input type="text" id="om-catalogNumber" name="catalogNumber" class="form-input">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="om-notes"><%= t('orders.field.notes') %></label>
+        <textarea id="om-notes" name="notes" class="form-input" rows="2"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="om-cancel"><%= t('btn.cancel') %></button>
+        <button type="submit" class="btn btn-primary"><%= t('orders.modal.submit') %></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── Toast ──────────────────────────────────────────── -->
+<div id="app-toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  var modal    = document.getElementById('order-modal');
+  var form     = document.getElementById('order-modal-form');
+  var qtyInput = document.getElementById('om-quantity');
+
+  function openOrderModal(data) {
+    document.getElementById('om-entityType').value    = data.entityType    || 'manual';
+    document.getElementById('om-entityId').value      = data.entityId      || '';
+    document.getElementById('om-nameRu').value        = data.nameRu        || '';
+    document.getElementById('om-nameEn').value        = data.nameEn        || '';
+    document.getElementById('om-unit').value          = data.unit          || '';
+    document.getElementById('om-manufacturer').value  = data.manufacturer  || '';
+    document.getElementById('om-catalogNumber').value = data.catalogNumber || '';
+    document.getElementById('om-notes').value         = '';
+    qtyInput.value = '';
+    modal.classList.add('is-open');
+    setTimeout(function () { qtyInput.focus(); }, 80);
+  }
+
+  function closeOrderModal() {
+    modal.classList.remove('is-open');
+  }
+
+  // Wire close buttons
+  document.getElementById('om-close').addEventListener('click', closeOrderModal);
+  document.getElementById('om-cancel').addEventListener('click', closeOrderModal);
+  modal.addEventListener('click', function (e) {
+    if (e.target === modal) closeOrderModal();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && modal.classList.contains('is-open')) closeOrderModal();
+  });
+
+  // Wire all "Order" buttons on the page
+  document.querySelectorAll('.btn-order').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      openOrderModal({
+        entityType:    btn.dataset.entityType,
+        entityId:      btn.dataset.entityId,
+        nameRu:        btn.dataset.nameRu,
+        nameEn:        btn.dataset.nameEn,
+        manufacturer:  btn.dataset.manufacturer,
+        catalogNumber: btn.dataset.catalogNumber,
+        unit:          btn.dataset.unit,
+      });
+    });
+  });
+
+  // Submit via fetch so user stays on the current page
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var submitBtn = form.querySelector('[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+
+    var body = new URLSearchParams(new FormData(form));
+    fetch('/orders', {
+      method:  'POST',
+      headers: { 'Accept': 'application/json' },
+      body:    body,
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.ok) {
+          closeOrderModal();
+          if (window.showToast) window.showToast(modal.dataset.success, 'success');
+        } else {
+          if (window.showToast) window.showToast(data.error || 'Error', 'error');
+        }
+      })
+      .catch(function () {
+        if (window.showToast) window.showToast('Error', 'error');
+      })
+      .finally(function () {
+        if (submitBtn) submitBtn.disabled = false;
+      });
+  });
+
+  // Expose globally
+  window.openOrderModal = openOrderModal;
+}());
+</script>

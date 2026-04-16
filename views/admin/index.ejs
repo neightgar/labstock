@@ -1,0 +1,242 @@
+<%
+  pageTitle    = t('admin.title');
+  pageSubtitle = t('admin.subtitle');
+  active = 'admin';
+  extraScripts = '';
+%>
+<%- include('../layouts/top', { pageTitle, active, extraScripts }) %>
+
+<% if (success) { %>
+  <% const msgKey = {
+    created:        'admin.success.created',
+    updated:        'admin.success.updated',
+    deleted:        'admin.success.deleted',
+    password_reset: 'admin.success.passwordReset',
+    bot_saved:      'admin.success.botSaved',
+    ws_created:     'admin.success.wsCreated',
+    ws_updated:     'admin.success.wsUpdated',
+    ws_deleted:     'admin.success.wsDeleted',
+  }[success]; %>
+  <div class="status-banner" style="margin-bottom:20px"><%= t(msgKey || 'feedback.saved') %></div>
+<% } %>
+<% if (error) { %>
+  <% const errKey = {
+    self_delete:       'admin.error.selfDelete',
+    bot_save_failed:   'admin.error.botSaveFailed',
+    ws_name_required:  'admin.error.wsNameRequired',
+    ws_default_delete: 'admin.error.wsDefaultDelete',
+    ws_not_empty:      'admin.error.wsNotEmpty',
+  }[error]; %>
+  <div class="status-banner is-error" style="margin-bottom:20px"><%= t(errKey || 'feedback.error') %></div>
+<% } %>
+
+<!-- ═══ Users ═══════════════════════════════════════════ -->
+<div class="section-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+  <h2 class="section-title"><%= t('admin.users.title') %></h2>
+  <a href="/admin/users/new" class="btn btn-primary btn-sm">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    <%= t('admin.users.add') %>
+  </a>
+</div>
+
+<div class="data-table-wrap" style="margin-bottom:32px">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th><%= t('field.username') %></th>
+        <th><%= t('field.displayName') %></th>
+        <th><%= t('admin.col.role') %></th>
+        <th><%= t('field.language') %></th>
+        <th><%= t('admin.col.telegram') %></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% users.forEach(function(u) { %>
+      <tr>
+        <td>
+          <span style="font-family:var(--font-mono);font-size:0.82rem"><%= u.username %></span>
+          <% if (u.id === currentUser.id) { %>
+            <span class="status-badge" style="margin-left:6px;background:var(--accent-light);color:var(--accent);font-size:0.7rem"><%= t('admin.badge.you') %></span>
+          <% } %>
+        </td>
+        <td><%= u.displayName %></td>
+        <td>
+          <% if (u.role === 'admin') { %>
+            <span class="status-badge" style="background:var(--accent-light);color:var(--accent)"><%= t('admin.role.admin') %></span>
+          <% } else { %>
+            <span class="status-badge" style="background:var(--bg-subtle);color:var(--text-muted)"><%= t('admin.role.user') %></span>
+          <% } %>
+        </td>
+        <td><%= u.language.toUpperCase() %></td>
+        <td>
+          <% if (u.telegramChatId) { %>
+            <span class="status-badge" style="background:var(--ok-light);color:var(--ok)">✓ <%= u.telegramChatId %></span>
+          <% } else { %>
+            <span class="status-badge" style="background:var(--bg-subtle);color:var(--text-muted)">—</span>
+          <% } %>
+        </td>
+        <td class="td-actions">
+          <a href="/admin/users/<%= u.id %>/edit" class="btn btn-ghost btn-sm"><%= t('btn.edit') %></a>
+          <% if (u.id !== currentUser.id) { %>
+            <form method="POST" action="/admin/users/<%= u.id %>/delete" style="display:inline"
+                  onsubmit="return confirm('<%= t('confirm.delete') %>')">
+              <button type="submit" class="btn btn-ghost btn-sm btn-danger"><%= t('btn.delete') %></button>
+            </form>
+          <% } %>
+        </td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══ Workspaces ════════════════════════════════════════ -->
+<div class="section-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+  <h2 class="section-title"><%= t('admin.workspace.title') %></h2>
+</div>
+
+<div class="data-table-wrap" style="margin-bottom:16px">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th><%= t('admin.workspace.nameRu') %></th>
+        <th><%= t('admin.workspace.nameEn') %></th>
+        <th><%= t('admin.workspace.members') %></th>
+        <th><%= t('admin.workspace.records') %></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% workspaces.forEach(function(ws) { %>
+      <tr>
+        <td style="font-family:var(--font-mono);color:var(--text-muted);font-size:0.8rem"><%= ws.id %></td>
+        <td><%= ws.nameRu %></td>
+        <td><%= ws.nameEn %></td>
+        <td><%= ws._count.members %></td>
+        <td style="color:var(--text-muted);font-size:0.82rem">
+          R:<%= ws._count.reagents %> C:<%= ws._count.consumables %>
+          E:<%= ws._count.equipment %> P:<%= ws._count.protocols %>
+          O:<%= ws._count.orderItems %>
+        </td>
+        <td class="td-actions">
+          <button class="btn btn-ghost btn-sm"
+                  onclick="openWsEdit(<%= JSON.stringify({id:ws.id,nameRu:ws.nameRu,nameEn:ws.nameEn}) %>)">
+            <%= t('btn.edit') %>
+          </button>
+          <% if (ws.id !== 1) { %>
+            <form method="POST" action="/admin/workspaces/<%= ws.id %>/delete" style="display:inline"
+                  onsubmit="return confirm('<%= t('confirm.delete') %>')">
+              <button type="submit" class="btn btn-ghost btn-sm btn-danger"><%= t('btn.delete') %></button>
+            </form>
+          <% } %>
+        </td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Create workspace form -->
+<details class="settings-card" style="margin-bottom:32px">
+  <summary style="cursor:pointer;font-weight:600;list-style:none;padding:4px 0">
+    + <%= t('admin.workspace.add') %>
+  </summary>
+  <form method="POST" action="/admin/workspaces" class="form-stack" style="margin-top:16px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <label class="field">
+        <span class="field-label"><%= t('admin.workspace.nameRu') %> *</span>
+        <input type="text" name="nameRu" required>
+      </label>
+      <label class="field">
+        <span class="field-label"><%= t('admin.workspace.nameEn') %></span>
+        <input type="text" name="nameEn" placeholder="= nameRu if empty">
+      </label>
+    </div>
+    <div><button type="submit" class="btn btn-primary btn-sm"><%= t('btn.save') %></button></div>
+  </form>
+</details>
+
+<!-- Edit workspace modal (inline) -->
+<div id="wsEditModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9000;align-items:center;justify-content:center">
+  <div class="settings-card" style="width:420px;max-width:95vw">
+    <h2 class="settings-card-title"><%= t('admin.workspace.edit') %></h2>
+    <form id="wsEditForm" method="POST" class="form-stack" style="margin-top:16px">
+      <input type="hidden" name="_wsId" id="wsEditId">
+      <label class="field">
+        <span class="field-label"><%= t('admin.workspace.nameRu') %> *</span>
+        <input type="text" name="nameRu" id="wsEditNameRu" required>
+      </label>
+      <label class="field">
+        <span class="field-label"><%= t('admin.workspace.nameEn') %></span>
+        <input type="text" name="nameEn" id="wsEditNameEn">
+      </label>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button type="submit" class="btn btn-primary btn-sm"><%= t('btn.save') %></button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="closeWsEdit()"><%= t('btn.cancel') %></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openWsEdit(ws) {
+  document.getElementById('wsEditId').value    = ws.id;
+  document.getElementById('wsEditNameRu').value = ws.nameRu;
+  document.getElementById('wsEditNameEn').value  = ws.nameEn;
+  document.getElementById('wsEditForm').action   = '/admin/workspaces/' + ws.id + '/update';
+  const modal = document.getElementById('wsEditModal');
+  modal.style.display = 'flex';
+}
+function closeWsEdit() {
+  document.getElementById('wsEditModal').style.display = 'none';
+}
+document.getElementById('wsEditModal').addEventListener('click', function(e) {
+  if (e.target === this) closeWsEdit();
+});
+</script>
+
+<!-- ═══ Telegram Bot ═════════════════════════════════════ -->
+<div style="margin-bottom:32px">
+  <div class="settings-card" style="max-width:480px">
+    <div class="settings-card-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7z"/><path d="M22 2 11 13"/></svg>
+    </div>
+    <h2 class="settings-card-title"><%= t('admin.bot.title') %></h2>
+
+    <% if (!botToken) { %>
+      <div class="alert-banner is-warning" style="margin-bottom:16px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <%= t('admin.bot.notConfigured') %>
+      </div>
+    <% } %>
+
+    <form method="POST" action="/admin/bot" class="form-stack">
+      <label class="field">
+        <span class="field-label">BOT_TOKEN</span>
+        <input type="text" name="botToken"
+               value="<%= botToken %>"
+               placeholder="<%= t('admin.bot.tokenPlaceholder') %>"
+               style="font-family:var(--font-mono);font-size:0.82rem">
+      </label>
+      <label class="field" style="flex-direction:row;align-items:center;gap:10px;cursor:pointer">
+        <input type="checkbox" name="botActive" value="1" <%= botActive ? 'checked' : '' %>
+               style="width:16px;height:16px;accent-color:var(--accent)">
+        <span class="field-label" style="margin:0"><%= t('admin.bot.active') %></span>
+      </label>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:4px">
+        <button type="submit" class="btn btn-primary btn-sm"><%= t('btn.save') %></button>
+        <span class="field-hint">
+          <% if (botRunning) { %>
+            <span style="color:var(--ok)">● <%= t('admin.bot.running') %></span>
+          <% } else { %>
+            <span style="color:var(--text-muted)">○ <%= t('admin.bot.stopped') %></span>
+          <% } %>
+        </span>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../layouts/bottom') %>

@@ -1,0 +1,135 @@
+<%
+  pageTitle = item.nameRu;
+  active    = 'equipment';
+
+  const STATUS_KEYS = { WORKING: 'equipment.status.working', REPAIR: 'equipment.status.repair', DECOMMISSIONED: 'equipment.status.decommissioned' };
+  const STATUS_CSS  = { WORKING: 'status-working', REPAIR: 'status-repair', DECOMMISSIONED: 'status-decommissioned' };
+%>
+<%- include('../layouts/top', { pageTitle, active }) %>
+
+<!-- Breadcrumb -->
+<nav class="breadcrumb">
+  <a href="/"><%= t('breadcrumb.home') %></a>
+  <span class="breadcrumb-sep">›</span>
+  <a href="/equipment"><%= t('nav.equipment') %></a>
+  <span class="breadcrumb-sep">›</span>
+  <span><%= item.nameRu %></span>
+</nav>
+
+<!-- Status banners -->
+<% if (item.status === 'REPAIR') { %>
+  <div class="status-banner" style="margin-bottom:14px;max-width:780px">
+    🔧 <%= t('equipment.alert.inRepair') %>
+  </div>
+<% } else if (item.status === 'DECOMMISSIONED') { %>
+  <div class="status-banner is-error" style="margin-bottom:14px;max-width:780px">
+    ✗ <%= t('equipment.alert.decommissioned') %>
+  </div>
+<% } %>
+
+<!-- Main card -->
+<div class="detail-card">
+  <div class="detail-header">
+    <div>
+      <div class="detail-title"><%= item.nameRu %></div>
+      <% if (item.nameEn && item.nameEn !== item.nameRu) { %>
+        <div class="detail-subtitle"><%= item.nameEn %></div>
+      <% } %>
+    </div>
+    <div class="detail-actions">
+      <a href="/equipment/<%= item.id %>/edit" class="btn btn-ghost btn-sm"><%= t('btn.edit') %></a>
+      <form method="post" action="/equipment/<%= item.id %>/delete"
+            onsubmit="return confirm('<%= t('confirm.delete') %>')" style="display:inline">
+        <button type="submit" class="btn btn-danger btn-sm"><%= t('btn.delete') %></button>
+      </form>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <div class="detail-field">
+      <span class="detail-label"><%= t('equipment.field.status') %></span>
+      <span class="detail-value">
+        <span class="status-badge <%= STATUS_CSS[item.status] %>"><%= t(STATUS_KEYS[item.status]) %></span>
+      </span>
+    </div>
+    <div class="detail-field">
+      <span class="detail-label"><%= t('reagents.field.manufacturer') %></span>
+      <span class="detail-value"><%= item.manufacturer?.name || '—' %></span>
+    </div>
+    <div class="detail-field">
+      <span class="detail-label"><%= t('equipment.field.model') %></span>
+      <span class="detail-value mono"><%= item.model || '—' %></span>
+    </div>
+    <div class="detail-field">
+      <span class="detail-label"><%= t('equipment.field.serialNumber') %></span>
+      <span class="detail-value mono"><%= item.serialNumber || '—' %></span>
+    </div>
+    <div class="detail-field">
+      <span class="detail-label"><%= t('reagents.field.location') %></span>
+      <span class="detail-value">
+        <%= item.location ? (currentLang === 'ru' ? item.location.nameRu : item.location.nameEn) : '—' %>
+      </span>
+    </div>
+    <div class="detail-field">
+      <span class="detail-label"><%= t('field.createdBy') %></span>
+      <span class="detail-value"><%= item.creator?.displayName || '—' %></span>
+    </div>
+    <% if (item.notes) { %>
+    <div class="detail-field" style="grid-column:1/-1">
+      <span class="detail-label"><%= t('reagents.field.notes') %></span>
+      <span class="detail-value"><%= item.notes %></span>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<!-- QR Code -->
+<% if (qrDataUrl) { %>
+<div class="qr-section">
+  <div class="qr-image-wrap">
+    <img src="<%= qrDataUrl %>" alt="QR code" width="124" height="124">
+  </div>
+  <div class="qr-info">
+    <div class="qr-title"><%= t('equipment.qrCode') %></div>
+    <div class="qr-hint"><%= t('equipment.qrHint') %></div>
+    <a href="/equipment/<%= item.id %>/qr"
+       download="qr-equipment-<%= item.id %>.png"
+       class="btn btn-ghost btn-sm">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <%= t('equipment.downloadQr') %>
+    </a>
+  </div>
+</div>
+<% } %>
+
+<!-- Attachments -->
+<div class="attachment-section">
+  <div class="attachment-section-title"><%= t('attachments.title') %></div>
+  <% if (attachments.length > 0) { %>
+    <div class="attachment-list">
+      <% attachments.forEach(att => { %>
+        <div class="attachment-row">
+          <a class="attachment-name" href="/uploads/<%= att.filepath %>" target="_blank"><%= att.filename %></a>
+          <span style="font-size:0.75rem;color:var(--text-muted)">
+            <%= new Date(att.uploadedAt).toLocaleDateString(currentLang === 'ru' ? 'ru-RU' : 'en-GB') %>
+          </span>
+          <form method="post" action="/equipment/<%= item.id %>/attachments/<%= att.id %>/delete"
+                onsubmit="return confirm('<%= t('attachments.confirmDelete') %>')" style="display:inline">
+            <button type="submit" class="attachment-del"><%= t('btn.delete') %></button>
+          </form>
+        </div>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <p class="empty-text" style="text-align:left;padding:0;margin-bottom:14px"><%= t('attachments.empty') %></p>
+  <% } %>
+  <form method="post" action="/equipment/<%= item.id %>/attachments" enctype="multipart/form-data"
+        style="display:flex;gap:8px;align-items:center">
+    <input type="file" name="file" style="font-size:0.82rem">
+    <button type="submit" class="btn btn-ghost btn-sm"><%= t('attachments.upload') %></button>
+  </form>
+</div>
+
+<div><a href="/equipment" class="btn btn-ghost btn-sm">← <%= t('btn.back') %></a></div>
+
+<%- include('../layouts/bottom') %>

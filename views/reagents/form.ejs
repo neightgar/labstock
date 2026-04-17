@@ -61,6 +61,22 @@
     </div>
   </div>
 
+  <div class="field-row">
+    <div class="field">
+      <label class="field-label"><%= t('reagents.field.supplier') %></label>
+      <select name="supplierId">
+        <option value="">— <%= t('reagents.field.supplier') %> —</option>
+        <% suppliers.forEach(s => { %>
+          <option value="<%= s.id %>" <%= item?.supplierId === s.id ? 'selected' : '' %>><%= s.name %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="field">
+      <label class="field-label"><%= t('reagents.field.supplierCatalogNumber') %></label>
+      <input type="text" name="supplierCatalogNumber" value="<%= item?.supplierCatalogNumber || '' %>">
+    </div>
+  </div>
+
   <p class="form-section-title" style="margin-top:4px"><%= t('reagents.section.stock') %></p>
 
   <div class="field-row">

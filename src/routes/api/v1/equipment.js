@@ -29,7 +29,7 @@ function buildPayload(body, { partial = false } = {}) {
     d.nameEn = body.nameEn.trim();
   }
 
-  for (const f of ["model", "serialNumber", "notes"]) {
+  for (const f of ["model", "serialNumber", "supplierCatalogNumber", "notes"]) {
     if (Object.prototype.hasOwnProperty.call(body, f))
       d[f] = body[f]?.toString().trim() || null;
   }
@@ -43,6 +43,8 @@ function buildPayload(body, { partial = false } = {}) {
     d.locationId = body.locationId ? parseInt(body.locationId) : null;
   if (Object.prototype.hasOwnProperty.call(body, "manufacturerId"))
     d.manufacturerId = body.manufacturerId ? parseInt(body.manufacturerId) : null;
+  if (Object.prototype.hasOwnProperty.call(body, "supplierId"))
+    d.supplierId = body.supplierId ? parseInt(body.supplierId) : null;
 
   if (partial && Object.keys(d).length === 0)
     return { error: { code: "VALIDATION_ERROR", message: "At least one field is required" } };

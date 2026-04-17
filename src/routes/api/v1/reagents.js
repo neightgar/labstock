@@ -31,7 +31,7 @@ function buildPayload(body, { partial = false } = {}) {
     d.nameEn = body.nameEn.trim();
   }
 
-  for (const f of ["casNumber", "formula", "catalogNumber", "notes"]) {
+  for (const f of ["casNumber", "formula", "catalogNumber", "supplierCatalogNumber", "notes"]) {
     if (Object.prototype.hasOwnProperty.call(body, f))
       d[f] = body[f]?.toString().trim() || null;
   }
@@ -56,6 +56,8 @@ function buildPayload(body, { partial = false } = {}) {
     d.locationId = body.locationId ? parseInt(body.locationId) : null;
   if (Object.prototype.hasOwnProperty.call(body, "manufacturerId"))
     d.manufacturerId = body.manufacturerId ? parseInt(body.manufacturerId) : null;
+  if (Object.prototype.hasOwnProperty.call(body, "supplierId"))
+    d.supplierId = body.supplierId ? parseInt(body.supplierId) : null;
   if (Object.prototype.hasOwnProperty.call(body, "expiryDate"))
     d.expiryDate = body.expiryDate ? new Date(body.expiryDate) : null;
   if (Object.prototype.hasOwnProperty.call(body, "receivedDate"))

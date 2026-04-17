@@ -3,6 +3,7 @@
 const API = {
   location:     '/references/api/locations',
   manufacturer: '/references/api/manufacturers',
+  supplier:     '/references/api/suppliers',
   itemtype:     '/references/api/item-types',
 };
 
@@ -79,6 +80,22 @@ document.querySelector('[data-save-add="manufacturer"]').addEventListener('click
   } catch (e) { showFeedback(e.message, true); }
 });
 
+// ── Save new supplier ─────────────────────────────────────
+
+document.querySelector('[data-save-add="supplier"]').addEventListener('click', async () => {
+  const name = document.getElementById('sup-name').value.trim();
+  if (!name) return showFeedback('Введите название', true);
+
+  try {
+    const sup = await apiFetch(API.supplier, 'POST', { name });
+    addRow('suppliers-list', buildSupplierRow(sup));
+    document.getElementById('sup-name').value = '';
+    document.getElementById('add-supplier').hidden = true;
+    document.querySelector('[data-open-add="supplier"]').hidden = false;
+    showFeedback('Добавлено');
+  } catch (e) { showFeedback(e.message, true); }
+});
+
 // ── Save new item type ────────────────────────────────────
 
 document.querySelector('[data-save-add="itemtype"]').addEventListener('click', async () => {
@@ -122,7 +139,7 @@ document.querySelectorAll('.ref-list').forEach((list) => {
     if (btn.dataset.saveEdit !== undefined) {
       try {
         let body, displayName;
-        if (type === 'manufacturer') {
+        if (type === 'manufacturer' || type === 'supplier') {
           body = { name: edit.querySelector('.edit-name').value.trim() };
           displayName = body.name;
         } else if (type === 'itemtype') {
@@ -189,6 +206,25 @@ function buildLocationRow(loc) {
     <div class="ref-row-edit" hidden>
       <input type="text" class="edit-nameRu" value="${loc.nameRu}">
       <input type="text" class="edit-nameEn" value="${loc.nameEn}">
+      <div class="ref-actions">
+        <button type="button" class="btn btn-ghost btn-sm" data-cancel-edit>Отмена</button>
+        <button type="button" class="btn btn-primary btn-sm" data-save-edit>Сохранить</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildSupplierRow(sup) {
+  return `<div class="ref-row" data-id="${sup.id}" data-type="supplier">
+    <div class="ref-row-view">
+      <span class="ref-name">${sup.name}</span>
+      <div class="ref-actions">
+        <button type="button" class="med-action" data-edit>${editIcon()}</button>
+        <button type="button" class="med-action danger" data-delete>${deleteIcon()}</button>
+      </div>
+    </div>
+    <div class="ref-row-edit" hidden>
+      <input type="text" class="edit-name" value="${sup.name}">
       <div class="ref-actions">
         <button type="button" class="btn btn-ghost btn-sm" data-cancel-edit>Отмена</button>
         <button type="button" class="btn btn-primary btn-sm" data-save-edit>Сохранить</button>

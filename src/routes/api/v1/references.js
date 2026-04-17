@@ -2,7 +2,7 @@
  * @swagger
  * tags:
  *   name: References
- *   description: Lookup tables — locations, manufacturers, item types
+ *   description: Lookup tables — locations, manufacturers, suppliers, item types
  */
 
 const express = require("express");
@@ -336,4 +336,107 @@ itemTypesRouter.delete("/:id", async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-module.exports = { locationsRouter, manufacturersRouter, itemTypesRouter };
+// ── Suppliers ─────────────────────────────────────────────
+
+const suppliersRouter = express.Router();
+
+/**
+ * @swagger
+ * /suppliers:
+ *   get:
+ *     summary: List all suppliers
+ *     tags: [References]
+ *     responses:
+ *       200:
+ *         description: Array of suppliers
+ */
+suppliersRouter.get("/", async (req, res, next) => {
+  try {
+    const items = await prisma.supplier.findMany({ orderBy: { name: "asc" } });
+    res.json(ok(items));
+  } catch (e) { next(e); }
+});
+
+/**
+ * @swagger
+ * /suppliers:
+ *   post:
+ *     summary: Create supplier
+ *     tags: [References]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name]
+ *             properties:
+ *               name: { type: string }
+ *     responses:
+ *       201:
+ *         description: Created supplier
+ */
+suppliersRouter.post("/", async (req, res, next) => {
+  try {
+    const name = req.body?.name?.trim();
+    if (!name)
+      return res.status(400).json(err("VALIDATION_ERROR", "name is required"));
+    const item = await prisma.supplier.create({ data: { name } });
+    await logAudit(req.apiUserId, "supplier", item.id, "CREATE", { name });
+    res.status(201).json(ok(item));
+  } catch (e) { next(e); }
+});
+
+/**
+ * @swagger
+ * /suppliers/{id}:
+ *   put:
+ *     summary: Update supplier
+ *     tags: [References]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       200:
+ *         description: Updated supplier
+ */
+suppliersRouter.put("/:id", async (req, res, next) => {
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json(err("INVALID_ID", "id must be a positive integer"));
+    const name = req.body?.name?.trim();
+    if (!name) return res.status(400).json(err("VALIDATION_ERROR", "name is required"));
+    const item = await prisma.supplier.update({ where: { id }, data: { name } });
+    await logAudit(req.apiUserId, "supplier", id, "UPDATE", { name });
+    res.json(ok(item));
+  } catch (e) { next(e); }
+});
+
+/**
+ * @swagger
+ * /suppliers/{id}:
+ *   delete:
+ *     summary: Delete supplier
+ *     tags: [References]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     responses:
+ *       204:
+ *         description: Deleted
+ */
+suppliersRouter.delete("/:id", async (req, res, next) => {
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json(err("INVALID_ID", "id must be a positive integer"));
+    await prisma.supplier.delete({ where: { id } });
+    await logAudit(req.apiUserId, "supplier", id, "DELETE", null);
+    res.status(204).send();
+  } catch (e) { next(e); }
+});
+
+module.exports = { locationsRouter, manufacturersRouter, suppliersRouter, itemTypesRouter };

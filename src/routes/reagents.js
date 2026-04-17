@@ -24,10 +24,11 @@ function buildPayload(body) {
   if (!nameEn) errors.push("nameEn обязательно");
   else data.nameEn = nameEn;
 
-  data.casNumber     = body.casNumber?.trim()     || null;
-  data.formula       = body.formula?.trim()       || null;
-  data.catalogNumber = body.catalogNumber?.trim() || null;
-  data.notes         = body.notes?.trim()         || null;
+  data.casNumber              = body.casNumber?.trim()              || null;
+  data.formula                = body.formula?.trim()                || null;
+  data.catalogNumber          = body.catalogNumber?.trim()          || null;
+  data.supplierCatalogNumber  = body.supplierCatalogNumber?.trim()  || null;
+  data.notes                  = body.notes?.trim()                  || null;
 
   const qty = parseFloat(body.quantity);
   if (isNaN(qty)) errors.push("quantity должно быть числом");
@@ -44,6 +45,7 @@ function buildPayload(body) {
 
   data.locationId     = body.locationId     ? parseInt(body.locationId)     : null;
   data.manufacturerId = body.manufacturerId ? parseInt(body.manufacturerId) : null;
+  data.supplierId     = body.supplierId     ? parseInt(body.supplierId)     : null;
   data.expiryDate     = body.expiryDate  ? new Date(body.expiryDate)  : null;
   data.receivedDate   = body.receivedDate ? new Date(body.receivedDate) : null;
 
@@ -52,11 +54,12 @@ function buildPayload(body) {
 }
 
 async function loadRefs() {
-  const [locations, manufacturers] = await Promise.all([
+  const [locations, manufacturers, suppliers] = await Promise.all([
     prisma.location.findMany({ orderBy: { nameRu: "asc" } }),
     prisma.manufacturer.findMany({ orderBy: { name: "asc" } }),
+    prisma.supplier.findMany({ orderBy: { name: "asc" } }),
   ]);
-  return { locations, manufacturers };
+  return { locations, manufacturers, suppliers };
 }
 
 // ── GET /reagents ─────────────────────────────────────────

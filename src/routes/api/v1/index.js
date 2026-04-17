@@ -82,6 +82,7 @@ router.use("/orders",        require("./orders"));
 router.use("/protocols",     require("./protocols"));
 router.use("/locations",     require("./references").locationsRouter);
 router.use("/manufacturers", require("./references").manufacturersRouter);
+router.use("/suppliers",     require("./references").suppliersRouter);
 router.use("/item-types",    require("./references").itemTypesRouter);
 router.use("/search",        require("./search"));
 

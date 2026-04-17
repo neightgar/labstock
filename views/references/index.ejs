@@ -107,6 +107,52 @@
   </div>
 </section>
 
+<!-- ═══ Suppliers ═════════════════════════════════════════ -->
+<section class="ref-section">
+  <div class="ref-section-header">
+    <h2 class="ref-section-title"><%= t('references.suppliers') %></h2>
+    <button type="button" class="btn btn-sm" data-open-add="supplier"><%= t('references.add') %></button>
+  </div>
+
+  <div class="ref-add-form" id="add-supplier" hidden>
+    <div class="field-row">
+      <label class="field" style="grid-column:1/-1">
+        <span class="field-label"><%= t('references.name') %></span>
+        <input type="text" id="sup-name" placeholder="Fisher Scientific">
+      </label>
+    </div>
+    <div class="ref-form-actions">
+      <button type="button" class="btn btn-ghost" data-cancel-add="supplier"><%= t('btn.cancel') %></button>
+      <button type="button" class="btn btn-primary" data-save-add="supplier"><%= t('btn.add') %></button>
+    </div>
+  </div>
+
+  <div class="ref-list" id="suppliers-list">
+    <% if (suppliers.length === 0) { %>
+      <div class="empty-text"><%= t('references.empty') %></div>
+    <% } else { %>
+      <% suppliers.forEach(function(sup) { %>
+        <div class="ref-row" data-id="<%= sup.id %>" data-type="supplier">
+          <div class="ref-row-view">
+            <span class="ref-name"><%= sup.name %></span>
+            <div class="ref-actions">
+              <button type="button" class="med-action" data-edit><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+              <button type="button" class="med-action danger" data-delete><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+            </div>
+          </div>
+          <div class="ref-row-edit" hidden>
+            <input type="text" class="edit-name" value="<%= sup.name %>">
+            <div class="ref-actions">
+              <button type="button" class="btn btn-ghost btn-sm" data-cancel-edit><%= t('btn.cancel') %></button>
+              <button type="button" class="btn btn-primary btn-sm" data-save-edit><%= t('btn.save') %></button>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    <% } %>
+  </div>
+</section>
+
 <!-- ═══ Item Types ════════════════════════════════════════ -->
 <section class="ref-section">
   <div class="ref-section-header">

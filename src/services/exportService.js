@@ -9,19 +9,22 @@ function fmtDate(dt) {
 
 const REAGENT_COLS = [
   "ID", "Название (RU)", "Название (EN)", "CAS", "Формула",
-  "Производитель", "Кат. номер", "Количество", "Ед.", "Мин. кол-во",
+  "Производитель", "Кат. номер", "Поставщик", "Артикул поставщика",
+  "Количество", "Ед.", "Мин. кол-во",
   "Место хранения", "Срок годности", "Дата получения", "Примечания",
 ];
 
 const CONSUMABLE_COLS = [
   "ID", "Название (RU)", "Название (EN)", "Тип", "Производитель",
-  "Кат. номер", "Количество", "Ед.", "Мин. кол-во", "Место хранения",
+  "Кат. номер", "Поставщик", "Артикул поставщика",
+  "Количество", "Ед.", "Мин. кол-во", "Место хранения",
   "Размер", "Стерильный", "Материал", "Объём", "Лот",
   "Срок годности", "Примечания",
 ];
 
 const EQUIPMENT_COLS = [
   "ID", "Название (RU)", "Название (EN)", "Модель", "Производитель",
+  "Поставщик", "Артикул поставщика",
   "Серийный номер", "Место хранения", "Статус", "Примечания",
 ];
 
@@ -29,6 +32,7 @@ function reagentRows(items) {
   return items.map((r) => [
     r.id, r.nameRu, r.nameEn, r.casNumber || "", r.formula || "",
     r.manufacturer?.name || "", r.catalogNumber || "",
+    r.supplier?.name || "", r.supplierCatalogNumber || "",
     r.quantity, r.unit, r.minQuantity ?? "",
     r.location?.nameRu || "", fmtDate(r.expiryDate), fmtDate(r.receivedDate), r.notes || "",
   ]);
@@ -38,7 +42,8 @@ function consumableRows(items) {
   return items.map((c) => [
     c.id, c.nameRu, c.nameEn,
     c.type?.nameRu || "", c.manufacturer?.name || "",
-    c.catalogNumber || "", c.quantity, c.unit, c.minQuantity ?? "",
+    c.catalogNumber || "", c.supplier?.name || "", c.supplierCatalogNumber || "",
+    c.quantity, c.unit, c.minQuantity ?? "",
     c.location?.nameRu || "", c.size || "",
     c.sterile ? "Да" : "Нет", c.material || "", c.volume ?? "",
     c.lotNumber || "", fmtDate(c.expiryDate), c.notes || "",
@@ -49,7 +54,8 @@ function equipmentRows(items) {
   const STATUS_RU = { WORKING: "Рабочее", REPAIR: "Ремонт", DECOMMISSIONED: "Списано" };
   return items.map((e) => [
     e.id, e.nameRu, e.nameEn, e.model || "",
-    e.manufacturer?.name || "", e.serialNumber || "",
+    e.manufacturer?.name || "", e.supplier?.name || "", e.supplierCatalogNumber || "",
+    e.serialNumber || "",
     e.location?.nameRu || "", STATUS_RU[e.status] || e.status, e.notes || "",
   ]);
 }

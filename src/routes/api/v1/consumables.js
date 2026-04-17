@@ -40,7 +40,7 @@ function buildPayload(body, { partial = false } = {}) {
     d.unit = body.unit.trim();
   }
 
-  for (const f of ["catalogNumber", "size", "material", "lotNumber", "notes"]) {
+  for (const f of ["catalogNumber", "supplierCatalogNumber", "size", "material", "lotNumber", "notes"]) {
     if (Object.prototype.hasOwnProperty.call(body, f))
       d[f] = body[f]?.toString().trim() || null;
   }
@@ -61,6 +61,8 @@ function buildPayload(body, { partial = false } = {}) {
     d.locationId = body.locationId ? parseInt(body.locationId) : null;
   if (Object.prototype.hasOwnProperty.call(body, "manufacturerId"))
     d.manufacturerId = body.manufacturerId ? parseInt(body.manufacturerId) : null;
+  if (Object.prototype.hasOwnProperty.call(body, "supplierId"))
+    d.supplierId = body.supplierId ? parseInt(body.supplierId) : null;
   if (Object.prototype.hasOwnProperty.call(body, "expiryDate"))
     d.expiryDate = body.expiryDate ? new Date(body.expiryDate) : null;
 

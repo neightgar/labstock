@@ -25,12 +25,14 @@ function buildPayload(body) {
   if (!nameEn) errors.push("nameEn обязательно");
   else data.nameEn = nameEn;
 
-  data.model        = body.model?.trim()        || null;
-  data.serialNumber = body.serialNumber?.trim() || null;
-  data.notes        = body.notes?.trim()        || null;
+  data.model                 = body.model?.trim()                 || null;
+  data.serialNumber          = body.serialNumber?.trim()          || null;
+  data.supplierCatalogNumber = body.supplierCatalogNumber?.trim() || null;
+  data.notes                 = body.notes?.trim()                 || null;
 
   data.locationId     = body.locationId     ? parseInt(body.locationId)     : null;
   data.manufacturerId = body.manufacturerId ? parseInt(body.manufacturerId) : null;
+  data.supplierId     = body.supplierId     ? parseInt(body.supplierId)     : null;
 
   const status = body.status;
   if (!svc.VALID_STATUSES.includes(status)) {
@@ -44,11 +46,12 @@ function buildPayload(body) {
 }
 
 async function loadRefs() {
-  const [locations, manufacturers] = await Promise.all([
+  const [locations, manufacturers, suppliers] = await Promise.all([
     prisma.location.findMany({ orderBy: { nameRu: "asc" } }),
     prisma.manufacturer.findMany({ orderBy: { name: "asc" } }),
+    prisma.supplier.findMany({ orderBy: { name: "asc" } }),
   ]);
-  return { locations, manufacturers };
+  return { locations, manufacturers, suppliers };
 }
 
 // ── GET /equipment ────────────────────────────────────────

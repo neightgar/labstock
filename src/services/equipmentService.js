@@ -5,12 +5,14 @@ const WS_SELECT = { select: { id: true, nameRu: true, nameEn: true } };
 const INCLUDE = {
   location: true,
   manufacturer: true,
+  supplier: true,
   workspace: WS_SELECT,
 };
 
 const INCLUDE_FULL = {
   location: true,
   manufacturer: true,
+  supplier: true,
   workspace: WS_SELECT,
   creator: { select: { displayName: true } },
 };
@@ -47,7 +49,7 @@ function resolveWorkspaceId(data, user) {
 async function findMany({
   page = 1, limit = 30,
   search = "",
-  locationId, manufacturerId, status,
+  locationId, manufacturerId, supplierId, status,
 } = {}, user = null) {
   const where = { deletedAt: null, ...wsWhere(user) };
 
@@ -61,6 +63,7 @@ async function findMany({
   }
   if (locationId)     where.locationId     = parseInt(locationId);
   if (manufacturerId) where.manufacturerId = parseInt(manufacturerId);
+  if (supplierId)     where.supplierId     = parseInt(supplierId);
   if (status && VALID_STATUSES.includes(status)) where.status = status;
 
   const skip = (page - 1) * limit;
@@ -134,6 +137,7 @@ async function findAllRaw(filters = {}, user = null) {
   }
   if (filters.locationId)     where.locationId     = parseInt(filters.locationId);
   if (filters.manufacturerId) where.manufacturerId = parseInt(filters.manufacturerId);
+  if (filters.supplierId)     where.supplierId     = parseInt(filters.supplierId);
   if (filters.status && VALID_STATUSES.includes(filters.status)) where.status = filters.status;
 
   return prisma.equipment.findMany({

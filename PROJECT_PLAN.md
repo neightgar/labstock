@@ -1,4 +1,4 @@
-# MRB-DB — План разработки
+# LabStock — План разработки
 ## База данных Сектора молекулярной радиобиологии ЛРБ ОИЯИ
 
 > Документ предназначен для использования как контекст в Claude Code (VS Code).
@@ -12,7 +12,7 @@
 ```
 ~/Projects/
 ├── home-apothecary/       ← reference-проект (read-only)
-└── MRB-DB/                ← этот проект
+└── LabStock/                ← этот проект
 ```
 
 - **Разработка**: VS Code + Claude Code, локальная машина
@@ -43,7 +43,7 @@
 
 ### Копировать as-is
 
-| Файл в home-apothecary | Назначение в MRB-DB | Что изменить |
+| Файл в home-apothecary | Назначение в LabStock | Что изменить |
 |------------------------|---------------------|-------------|
 | `src/i18n.js` | `src/i18n.js` | Ничего |
 | `src/services/telegram.js` | `src/services/telegram.js` (Фаза 8) | Ничего |
@@ -51,7 +51,7 @@
 
 ### Адаптировать
 
-| Файл в home-apothecary | Назначение в MRB-DB | Что изменить |
+| Файл в home-apothecary | Назначение в LabStock | Что изменить |
 |------------------------|---------------------|-------------|
 | `Dockerfile` | `Dockerfile` | Добавить python3/make/g++ для bcrypt. Создать /app/uploads, /app/backups |
 | `docker-compose.yml` | `docker-compose.yml` | Сменить image/порт/env. Volumes для uploads/backups. Synology `/volume1/docker/` |
@@ -381,7 +381,7 @@ model AuditLog {
 ## Структура проекта
 
 ```
-~/Projects/MRB-DB/
+~/Projects/LabStock/
 ├── prisma/
 │   └── schema.prisma
 ├── src/
@@ -602,16 +602,16 @@ model AuditLog {
 
 ```yaml
 services:
-  mrb-db:
-    image: neightgar/mrb-db:latest
-    container_name: mrb-db
+  labstock:
+    image: neightgar/labstock:latest
+    container_name: labstock
     restart: unless-stopped
     ports:
       - "3120:3000"
     volumes:
-      - /volume1/docker/mrb-db/data:/app/data
-      - /volume1/docker/mrb-db/uploads:/app/uploads
-      - /volume1/docker/mrb-db/backups:/app/backups
+      - /volume1/docker/labstock/data:/app/data
+      - /volume1/docker/labstock/uploads:/app/uploads
+      - /volume1/docker/labstock/backups:/app/backups
     env_file:
       - .env
     environment:
@@ -625,7 +625,7 @@ services:
 
 ```json
 {
-  "name": "mrb-db",
+  "name": "labstock",
   "version": "1.0.0",
   "private": true,
   "description": "Lab inventory database for Molecular Radiobiology Sector, LRB JINR",

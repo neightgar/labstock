@@ -32,6 +32,17 @@ model Manufacturer {
   @@map("manufacturers")
 }
 
+model Supplier {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  reagents    Reagent[]
+  consumables Consumable[]
+  equipment   Equipment[]
+
+  @@map("suppliers")
+}
+
 model ItemType {
   id       Int    @id @default(autoincrement())
   nameRu   String @map("name_ru")
@@ -51,12 +62,15 @@ model Reagent {
   nameEn         String        @map("name_en")
   casNumber      String?       @map("cas_number")
   formula        String?
-  manufacturerId Int?          @map("manufacturer_id")
-  manufacturer   Manufacturer? @relation(fields: [manufacturerId], references: [id])
-  catalogNumber  String?       @map("catalog_number")
-  quantity       Float
-  unit           String
-  minQuantity    Float?        @map("min_quantity")
+  manufacturerId          Int?          @map("manufacturer_id")
+  manufacturer            Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  catalogNumber           String?       @map("catalog_number")
+  supplierId              Int?          @map("supplier_id")
+  supplier                Supplier?     @relation(fields: [supplierId], references: [id])
+  supplierCatalogNumber   String?       @map("supplier_catalog_number")
+  quantity                Float
+  unit                    String
+  minQuantity             Float?        @map("min_quantity")
   locationId     Int?          @map("location_id")
   location       Location?     @relation(fields: [locationId], references: [id])
   expiryDate     DateTime?     @map("expiry_date")
@@ -79,12 +93,15 @@ model Consumable {
   nameEn         String        @map("name_en")
   typeId         Int?          @map("type_id")
   type           ItemType?     @relation(fields: [typeId], references: [id])
-  manufacturerId Int?          @map("manufacturer_id")
-  manufacturer   Manufacturer? @relation(fields: [manufacturerId], references: [id])
-  catalogNumber  String?       @map("catalog_number")
-  quantity       Int
-  unit           String
-  minQuantity    Int?          @map("min_quantity")
+  manufacturerId        Int?          @map("manufacturer_id")
+  manufacturer          Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  catalogNumber         String?       @map("catalog_number")
+  supplierId            Int?          @map("supplier_id")
+  supplier              Supplier?     @relation(fields: [supplierId], references: [id])
+  supplierCatalogNumber String?       @map("supplier_catalog_number")
+  quantity              Int
+  unit                  String
+  minQuantity           Int?          @map("min_quantity")
   locationId     Int?          @map("location_id")
   location       Location?     @relation(fields: [locationId], references: [id])
   size           String?
@@ -110,9 +127,12 @@ model Equipment {
   nameRu         String          @map("name_ru")
   nameEn         String          @map("name_en")
   model          String?
-  manufacturerId Int?            @map("manufacturer_id")
-  manufacturer   Manufacturer?   @relation(fields: [manufacturerId], references: [id])
-  serialNumber   String?         @map("serial_number")
+  manufacturerId        Int?            @map("manufacturer_id")
+  manufacturer          Manufacturer?   @relation(fields: [manufacturerId], references: [id])
+  supplierId            Int?            @map("supplier_id")
+  supplier              Supplier?       @relation(fields: [supplierId], references: [id])
+  supplierCatalogNumber String?         @map("supplier_catalog_number")
+  serialNumber          String?         @map("serial_number")
   locationId     Int?            @map("location_id")
   location       Location?       @relation(fields: [locationId], references: [id])
   status         EquipmentStatus @default(WORKING)

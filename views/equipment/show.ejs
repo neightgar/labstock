@@ -57,6 +57,14 @@
       <span class="detail-value"><%= item.manufacturer?.name || '—' %></span>
     </div>
     <div class="detail-field">
+      <span class="detail-label"><%= t('reagents.field.supplier') %></span>
+      <span class="detail-value"><%= item.supplier?.name || '—' %></span>
+    </div>
+    <div class="detail-field">
+      <span class="detail-label"><%= t('reagents.field.supplierCatalogNumber') %></span>
+      <span class="detail-value mono"><%= item.supplierCatalogNumber || '—' %></span>
+    </div>
+    <div class="detail-field">
       <span class="detail-label"><%= t('equipment.field.model') %></span>
       <span class="detail-value mono"><%= item.model || '—' %></span>
     </div>

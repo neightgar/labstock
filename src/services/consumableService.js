@@ -5,6 +5,7 @@ const WS_SELECT = { select: { id: true, nameRu: true, nameEn: true } };
 const INCLUDE = {
   location: true,
   manufacturer: true,
+  supplier: true,
   type: true,
   workspace: WS_SELECT,
 };
@@ -12,6 +13,7 @@ const INCLUDE = {
 const INCLUDE_FULL = {
   location: true,
   manufacturer: true,
+  supplier: true,
   type: true,
   workspace: WS_SELECT,
   creator: { select: { displayName: true } },
@@ -47,7 +49,7 @@ function resolveWorkspaceId(data, user) {
 async function findMany({
   page = 1, limit = 30,
   search = "",
-  locationId, manufacturerId, typeId,
+  locationId, manufacturerId, supplierId, typeId,
   expiry,
 } = {}, user = null) {
   const where = { deletedAt: null, ...wsWhere(user) };
@@ -61,6 +63,7 @@ async function findMany({
   }
   if (locationId)     where.locationId     = parseInt(locationId);
   if (manufacturerId) where.manufacturerId = parseInt(manufacturerId);
+  if (supplierId)     where.supplierId     = parseInt(supplierId);
   if (typeId)         where.typeId         = parseInt(typeId);
 
   if (expiry === "expired") {
@@ -141,6 +144,7 @@ async function findAllRaw(filters = {}, user = null) {
   }
   if (filters.locationId)     where.locationId     = parseInt(filters.locationId);
   if (filters.manufacturerId) where.manufacturerId = parseInt(filters.manufacturerId);
+  if (filters.supplierId)     where.supplierId     = parseInt(filters.supplierId);
   if (filters.typeId)         where.typeId         = parseInt(filters.typeId);
   if (filters.expiry === "expired") where.expiryDate = { not: null, lt: new Date() };
   if (filters.expiry === "soon")    where.expiryDate = { not: null, lte: new Date(Date.now() + 7 * 86400000) };

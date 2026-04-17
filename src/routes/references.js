@@ -5,13 +5,14 @@ const router = express.Router();
 
 // ── GET /references ───────────────────────────────────────
 router.get("/", async (req, res) => {
-  const [locations, manufacturers, itemTypes] = await Promise.all([
+  const [locations, manufacturers, suppliers, itemTypes] = await Promise.all([
     prisma.location.findMany({ orderBy: { nameRu: "asc" } }),
     prisma.manufacturer.findMany({ orderBy: { name: "asc" } }),
+    prisma.supplier.findMany({ orderBy: { name: "asc" } }),
     prisma.itemType.findMany({ orderBy: { nameRu: "asc" } }),
   ]);
 
-  res.render("references/index", { locations, manufacturers, itemTypes });
+  res.render("references/index", { locations, manufacturers, suppliers, itemTypes });
 });
 
 // ════════════════════════════════════════════════════════
@@ -94,6 +95,48 @@ async function countManufacturerUsage(id) {
     prisma.reagent.count({ where: { manufacturerId: id, deletedAt: null } }),
     prisma.consumable.count({ where: { manufacturerId: id, deletedAt: null } }),
     prisma.equipment.count({ where: { manufacturerId: id, deletedAt: null } }),
+  ]);
+  return r + c + e;
+}
+
+// ════════════════════════════════════════════════════════
+// Suppliers
+// ════════════════════════════════════════════════════════
+
+router.post("/api/suppliers", async (req, res) => {
+  const { name } = req.body || {};
+  if (!name) return res.status(400).json({ error: "name required" });
+
+  const supplier = await prisma.supplier.create({ data: { name } });
+  res.json(supplier);
+});
+
+router.put("/api/suppliers/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+  const { name } = req.body || {};
+  if (!name) return res.status(400).json({ error: "name required" });
+
+  const supplier = await prisma.supplier.update({ where: { id }, data: { name } });
+  res.json(supplier);
+});
+
+router.delete("/api/suppliers/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+
+  const usageCount = await countSupplierUsage(id);
+  if (usageCount > 0) {
+    return res.status(409).json({ error: res.locals.t("references.inUse") });
+  }
+
+  await prisma.supplier.delete({ where: { id } });
+  res.json({ ok: true });
+});
+
+async function countSupplierUsage(id) {
+  const [r, c, e] = await Promise.all([
+    prisma.reagent.count({ where: { supplierId: id, deletedAt: null } }),
+    prisma.consumable.count({ where: { supplierId: id, deletedAt: null } }),
+    prisma.equipment.count({ where: { supplierId: id, deletedAt: null } }),
   ]);
   return r + c + e;
 }

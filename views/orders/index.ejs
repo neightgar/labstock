@@ -33,7 +33,7 @@
       ↓ <%= t('orders.exportSelected') %>
     </button>
     <button type="button" id="btn-delete" class="btn btn-danger btn-sm" disabled>
-      <%= t('orders.deleteSelected') %>
+      <%= t('orders.deleteReceived') %>
     </button>
     <button type="button" class="btn btn-primary btn-sm btn-order"
             data-entity-type="manual"
@@ -60,7 +60,8 @@
         <th><%= t('orders.col.unit') %></th>
         <th><%= t('orders.col.manufacturer') %></th>
         <th><%= t('orders.col.catalogNumber') %></th>
-        <th><%= t('orders.col.notes') %></th>
+        <th><%= t('orders.col.deliveryDate') %></th>
+        <th><%= t('orders.col.notify') %></th>
         <th><%= t('orders.col.addedBy') %></th>
         <th><%= t('orders.col.date') %></th>
         <% if (showWsCol) { %><th><%= t('admin.workspace.col') %></th><% } %>
@@ -82,7 +83,13 @@
         <td><%= item.unit %></td>
         <td><%= item.manufacturer || '—' %></td>
         <td class="cell-mono"><%= item.catalogNumber || '—' %></td>
-        <td style="max-width:200px;white-space:pre-wrap;word-break:break-word"><%= item.notes || '—' %></td>
+        <% var now = new Date(); var dd = item.deliveryDate ? new Date(item.deliveryDate) : null; %>
+        <td class="cell-mono<%= dd && dd < now ? ' text-danger' : '' %>" style="white-space:nowrap">
+          <%= dd ? dd.toLocaleDateString(currentLang === 'ru' ? 'ru-RU' : 'en-GB') : '—' %>
+        </td>
+        <td style="text-align:center">
+          <% if (item.notifyEnabled) { %><span title="<%= t('orders.field.notifyEnabled') %>">🔔</span><% } %>
+        </td>
         <td><%= item.creator?.displayName || '—' %></td>
         <td class="cell-mono" style="white-space:nowrap">
           <%= new Date(item.createdAt).toLocaleDateString('ru-RU') %>

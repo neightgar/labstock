@@ -61,8 +61,19 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="om-notes"><%= t('orders.field.notes') %></label>
-        <textarea id="om-notes" name="notes" class="form-input" rows="2"></textarea>
+        <label class="form-label" for="om-deliveryDate"><%= t('orders.field.deliveryDate') %></label>
+        <input type="date" id="om-deliveryDate" name="deliveryDate" class="form-input">
+      </div>
+
+      <div class="form-group" style="display:flex;flex-direction:column;gap:8px">
+        <label class="checkbox-label">
+          <input type="checkbox" id="om-notifyOnOverdue" name="notifyOnOverdue" disabled>
+          <span><%= t('orders.field.notifyOnOverdue') %></span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="om-notifyEnabled" name="notifyEnabled">
+          <span><%= t('orders.field.notifyEnabled') %></span>
+        </label>
       </div>
 
       <div class="modal-actions">
@@ -90,7 +101,10 @@
     document.getElementById('om-unit').value          = data.unit          || '';
     document.getElementById('om-manufacturer').value  = data.manufacturer  || '';
     document.getElementById('om-catalogNumber').value = data.catalogNumber || '';
-    document.getElementById('om-notes').value         = '';
+    document.getElementById('om-deliveryDate').value  = '';
+    document.getElementById('om-notifyOnOverdue').checked  = false;
+    document.getElementById('om-notifyOnOverdue').disabled = true;
+    document.getElementById('om-notifyEnabled').checked    = false;
     qtyInput.value = '';
     modal.classList.add('is-open');
     setTimeout(function () { qtyInput.focus(); }, 80);
@@ -99,6 +113,17 @@
   function closeOrderModal() {
     modal.classList.remove('is-open');
   }
+
+  // deliveryDate → notifyOnOverdue dependency
+  document.getElementById('om-deliveryDate').addEventListener('input', function () {
+    var notifyCheck = document.getElementById('om-notifyOnOverdue');
+    if (!this.value) {
+      notifyCheck.checked  = false;
+      notifyCheck.disabled = true;
+    } else {
+      notifyCheck.disabled = false;
+    }
+  });
 
   // Wire close buttons
   document.getElementById('om-close').addEventListener('click', closeOrderModal);

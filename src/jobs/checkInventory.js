@@ -23,6 +23,48 @@ function groupByWs(items) {
   return map;
 }
 
+async function checkOverdueOrders() {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const overdueItems = await prisma.orderItem.findMany({
+      where: {
+        deliveryDate:    { lt: today },
+        notifyOnOverdue: true,
+        notifyEnabled:   true,
+      },
+      include: {
+        creator: { select: { id: true, telegramChatId: true, language: true } },
+      },
+    });
+
+    if (overdueItems.length === 0) return;
+
+    // Group by creator
+    const byUser = {};
+    for (const item of overdueItems) {
+      const uid = item.createdBy;
+      if (!byUser[uid]) byUser[uid] = { user: item.creator, items: [] };
+      byUser[uid].items.push(item);
+    }
+
+    for (const { user, items } of Object.values(byUser)) {
+      if (!user?.telegramChatId) continue;
+      const lang = user.language || "ru";
+      const lines = [lang === "en" ? "⚠️ Delivery overdue:" : "⚠️ Срок поставки истёк:"];
+      for (const item of items) {
+        const name = (lang === "en" && item.nameEn) ? item.nameEn : item.nameRu;
+        const date = formatDate(item.deliveryDate);
+        lines.push(`• ${name} | ${item.quantity} ${item.unit} | ${date}`);
+      }
+      await sendTelegramMessage(user.telegramChatId, lines.join("\n"));
+    }
+  } catch (err) {
+    console.error("[checkOverdueOrders] Job failed:", err);
+  }
+}
+
 async function checkInventory() {
   try {
     const expiryLimit = new Date(Date.now() + EXPIRY_WINDOW_DAYS * 24 * 60 * 60 * 1000);
@@ -170,8 +212,9 @@ function startInventoryCheckJob() {
   // Run every day at 09:00
   cron.schedule("0 9 * * *", () => {
     checkInventory();
+    checkOverdueOrders();
   });
   console.log("[checkInventory] Daily 09:00 job scheduled.");
 }
 
-module.exports = { checkInventory, startInventoryCheckJob };
+module.exports = { checkInventory, checkOverdueOrders, startInventoryCheckJob };

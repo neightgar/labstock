@@ -11,7 +11,7 @@ async function exportToXlsx(items) {
     { header: "Ед. изм.",      key: "unit",           width: 10 },
     { header: "Производитель", key: "manufacturer",   width: 22 },
     { header: "Артикул",       key: "catalogNumber",  width: 18 },
-    { header: "Комментарий",   key: "notes",          width: 32 },
+    { header: "Дата поставки", key: "deliveryDate",   width: 16 },
   ];
 
   const headerRow = ws.getRow(1);
@@ -34,7 +34,7 @@ async function exportToXlsx(items) {
       unit:          item.unit,
       manufacturer:  item.manufacturer  || "",
       catalogNumber: item.catalogNumber || "",
-      notes:         item.notes         || "",
+      deliveryDate:  item.deliveryDate ? new Date(item.deliveryDate).toISOString().slice(0, 10) : "",
     });
   });
 

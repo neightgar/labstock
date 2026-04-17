@@ -164,9 +164,11 @@ model OrderItem {
   entityId      Int?     @map("entity_id")
   quantity      Float
   unit          String
-  manufacturer  String?
-  catalogNumber String?  @map("catalog_number")
-  notes         String?
+  manufacturer          String?
+  catalogNumber         String?   @map("catalog_number")
+  deliveryDate          DateTime? @map("delivery_date")
+  notifyOnOverdue       Boolean   @default(false) @map("notify_on_overdue")
+  notifyEnabled         Boolean   @default(false) @map("notify_enabled")
   createdBy     Int      @map("created_by")
   creator       User     @relation(fields: [createdBy], references: [id])
   workspaceId   Int      @map("workspace_id")

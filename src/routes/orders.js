@@ -25,11 +25,13 @@ function buildPayload(body) {
   if (!unit) errors.push("unit required");
   else data.unit = unit;
 
-  data.manufacturer  = body.manufacturer?.trim()  || null;
-  data.catalogNumber = body.catalogNumber?.trim() || null;
-  data.notes         = body.notes?.trim()         || null;
-  data.entityType    = body.entityType?.trim()    || "manual";
-  data.entityId      = body.entityId ? parseInt(body.entityId) : null;
+  data.manufacturer    = body.manufacturer?.trim()  || null;
+  data.catalogNumber   = body.catalogNumber?.trim() || null;
+  data.deliveryDate    = body.deliveryDate ? new Date(body.deliveryDate) : null;
+  data.notifyOnOverdue = body.notifyOnOverdue === "on" || body.notifyOnOverdue === true;
+  data.notifyEnabled   = body.notifyEnabled  === "on" || body.notifyEnabled  === true;
+  data.entityType      = body.entityType?.trim()    || "manual";
+  data.entityId        = body.entityId ? parseInt(body.entityId) : null;
 
   if (errors.length) return { error: errors.join("; ") };
   return { data };

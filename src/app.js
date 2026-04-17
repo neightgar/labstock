@@ -14,9 +14,9 @@ const app = express();
 
 // ── Session store (separate SQLite file) ─────────────────
 // Use a stable path that works both locally and in Docker.
-// In Docker, DATABASE_URL is absolute (file:/app/data/mrb.db) → use its dir.
+// In Docker, DATABASE_URL is absolute (file:/app/data/labstock.db) → use its dir.
 // In dev, store sessions next to the Prisma-managed DB (prisma/data/).
-const _dbUrl = process.env.DATABASE_URL || "file:./prisma/data/mrb.db";
+const _dbUrl = process.env.DATABASE_URL || "file:./prisma/data/labstock.db";
 const _dbPath = _dbUrl.replace(/^file:/, "");
 const SESSION_DB_DIR = path.isAbsolute(_dbPath)
   ? path.dirname(_dbPath)

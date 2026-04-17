@@ -5,7 +5,7 @@ const path = require("path");
 
 // Prisma 5+ resolves SQLite relative paths from schema.prisma location (prisma/).
 // Do NOT normalize the URL — let Prisma handle resolution natively.
-// For Docker, DATABASE_URL is an absolute file: path (file:/app/data/mrb.db).
+// For Docker, DATABASE_URL is an absolute file: path (file:/app/data/labstock.db).
 
 const app = require("./app");
 const prisma = require("./utils/prisma");

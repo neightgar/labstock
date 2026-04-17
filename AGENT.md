@@ -43,7 +43,7 @@ Self-hosted on Synology NAS via Docker. Based on the architecture of home-apothe
 ## Database Rules
 
 * Use SQLite only, with WAL mode enabled
-* Store DB in `/app/data/mrb.db`
+* Store DB in `/app/data/labstock.db`
 * Use Prisma for all DB operations (no raw SQL except FTS5 and PRAGMA)
 * All main tables include `deleted_at` for soft delete — always filter with `WHERE deleted_at IS NULL`
 * All CUD operations must write to AuditLog

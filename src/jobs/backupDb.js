@@ -4,7 +4,7 @@ const path = require("path");
 
 const DB_PATH = process.env.DATABASE_URL
   ? process.env.DATABASE_URL.replace("file:", "")
-  : "./data/mrb.db";
+  : "./data/labstock.db";
 
 const BACKUP_DIR = process.env.BACKUP_DIR || "./backups";
 const RETENTION_DAYS = 30;

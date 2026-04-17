@@ -13,4 +13,4 @@ services:
       - .env
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=file:/app/data/mrb.db
+      - DATABASE_URL=file:/app/data/labstock.db

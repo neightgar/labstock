@@ -42,6 +42,17 @@
 
 ---
 
+## Quick Install
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/neightgar/labstock/main/install.sh | bash
+```
+
+Supports Linux (Ubuntu/Debian) and Synology NAS.
+Automatically detects the platform and selects Docker or bare metal installation.
+
+---
+
 ## Installation
 
 ### Option A — Docker (recommended)

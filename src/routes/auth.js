@@ -4,7 +4,7 @@ const crypto = require("crypto");
 const prisma = require("../utils/prisma");
 
 const router = express.Router();
-const SALT_ROUNDS = 12;
+const SALT_ROUNDS = process.env.NODE_ENV === "production" ? 12 : 10;
 
 // ── GET /login ────────────────────────────────────────────
 router.get("/login", async (req, res) => {
@@ -75,21 +75,26 @@ router.get("/setup", async (req, res) => {
 
 // ── POST /setup ───────────────────────────────────────────
 router.post("/setup", async (req, res) => {
-  const count = await prisma.user.count();
-  if (count > 0) return res.redirect("/login");
+  try {
+    const count = await prisma.user.count();
+    if (count > 0) return res.redirect("/login");
 
-  const { username, displayName, password } = req.body || {};
+    const { username, displayName, password } = req.body || {};
 
-  if (!username || !displayName || !password) {
-    return res.render("auth/setup", { error: "Все поля обязательны" });
+    if (!username || !displayName || !password) {
+      return res.render("auth/setup", { error: "Все поля обязательны" });
+    }
+
+    const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+    await prisma.user.create({
+      data: { username, displayName, passwordHash, language: "ru", role: "admin" },
+    });
+
+    res.redirect("/login");
+  } catch (err) {
+    console.error("[setup] Failed to create admin:", err);
+    res.render("auth/setup", { error: `Ошибка создания пользователя: ${err.message}` });
   }
-
-  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-  await prisma.user.create({
-    data: { username, displayName, passwordHash, language: "ru", role: "admin" },
-  });
-
-  res.redirect("/login");
 });
 
 // ── GET /profile ──────────────────────────────────────────

@@ -112,7 +112,7 @@ Before writing a file from scratch, check if an analog exists in `~/Projects/hom
 * Must run both locally without Docker and inside Docker without code changes
 * Data persists via volumes: /app/data, /app/uploads, /app/backups
 * No hardcoded secrets — use `.env` or Portainer env vars
-* Synology NAS paths: `/volume1/docker/mrb-db/`
+* Synology NAS paths: `/volume1/docker/labstock/`
 
 ## What NOT to Do
 

@@ -11,7 +11,7 @@ const {
 } = require("../services/telegramBot");
 
 const router = express.Router();
-const SALT_ROUNDS = 12;
+const SALT_ROUNDS = process.env.NODE_ENV === "production" ? 12 : 10;
 
 // All /admin routes require admin role
 router.use(requireAdmin);

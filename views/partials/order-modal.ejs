@@ -210,7 +210,7 @@
             updateOrderRow(data.item);
             if (window.showToast) window.showToast(modal.dataset.msgSaved, 'success');
           } else {
-            if (window.showToast) window.showToast(modal.dataset.msgAdded, 'success');
+            window.location.reload();
           }
         } else {
           if (window.showToast) window.showToast(data.error || 'Error', 'error');

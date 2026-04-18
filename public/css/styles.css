@@ -518,8 +518,8 @@ input, textarea, select { font: inherit; }
 /* ── Page Inner ─────────────────────────────────────────── */
 .page-inner {
   padding: 24px 28px 48px;
-  max-width: 1120px;
   flex: 1;
+  min-width: 0;
 }
 
 /* ── Breadcrumbs ────────────────────────────────────────── */

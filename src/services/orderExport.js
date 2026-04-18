@@ -5,13 +5,15 @@ async function exportToXlsx(items) {
   const ws = wb.addWorksheet("Order");
 
   ws.columns = [
-    { header: "№",             key: "n",             width: 5  },
-    { header: "Название",      key: "name",           width: 32 },
-    { header: "Кол-во",        key: "quantity",       width: 10 },
-    { header: "Ед. изм.",      key: "unit",           width: 10 },
-    { header: "Производитель", key: "manufacturer",   width: 22 },
-    { header: "Артикул",       key: "catalogNumber",  width: 18 },
-    { header: "Дата поставки", key: "deliveryDate",   width: 16 },
+    { header: "№",                        key: "n",                     width: 5  },
+    { header: "Название",                  key: "name",                  width: 32 },
+    { header: "Кол-во",                   key: "quantity",              width: 10 },
+    { header: "Ед. изм.",                 key: "unit",                  width: 10 },
+    { header: "Производитель",            key: "manufacturer",          width: 22 },
+    { header: "Каталожный номер",         key: "catalogNumber",         width: 18 },
+    { header: "Поставщик",               key: "supplier",              width: 22 },
+    { header: "Кат. номер поставщика",   key: "supplierCatalogNumber", width: 22 },
+    { header: "Дата поставки",            key: "deliveryDate",          width: 16 },
   ];
 
   const headerRow = ws.getRow(1);
@@ -28,13 +30,15 @@ async function exportToXlsx(items) {
       item.nameRu +
       (item.nameEn && item.nameEn !== item.nameRu ? ` / ${item.nameEn}` : "");
     ws.addRow({
-      n:             i + 1,
+      n:                     i + 1,
       name,
-      quantity:      item.quantity,
-      unit:          item.unit,
-      manufacturer:  item.manufacturer  || "",
-      catalogNumber: item.catalogNumber || "",
-      deliveryDate:  item.deliveryDate ? new Date(item.deliveryDate).toISOString().slice(0, 10) : "",
+      quantity:              item.quantity,
+      unit:                  item.unit,
+      manufacturer:          item.manufacturer          || "",
+      catalogNumber:         item.catalogNumber         || "",
+      supplier:              item.supplier              || "",
+      supplierCatalogNumber: item.supplierCatalogNumber || "",
+      deliveryDate:          item.deliveryDate ? new Date(item.deliveryDate).toISOString().slice(0, 10) : "",
     });
   });
 

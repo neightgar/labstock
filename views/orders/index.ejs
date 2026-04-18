@@ -39,7 +39,9 @@
             data-entity-type="manual"
             data-entity-id=""
             data-name-ru=""  data-name-en=""
-            data-manufacturer=""  data-catalog-number=""  data-unit="">
+            data-manufacturer=""  data-catalog-number=""
+            data-supplier=""  data-supplier-catalog-number=""
+            data-unit="">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       <%= t('orders.addManual') %>
     </button>
@@ -52,6 +54,20 @@
     <p class="empty-text"><%= t('orders.empty') %></p>
   <% } else { %>
   <table class="data-table" id="orders-table">
+    <colgroup>
+      <col style="width:40px">
+      <col>
+      <col style="width:72px">
+      <col style="width:60px">
+      <col style="width:120px">
+      <col style="width:110px">
+      <col style="width:120px">
+      <col style="width:54px">
+      <col style="width:90px">
+      <col style="width:86px">
+      <% if (showWsCol) { %><col style="width:100px"><% } %>
+      <col style="width:88px">
+    </colgroup>
     <thead>
       <tr>
         <th class="col-check"><input type="checkbox" id="check-all" title="<%= t('orders.selectAll') %>"></th>
@@ -61,15 +77,16 @@
         <th><%= t('orders.col.manufacturer') %></th>
         <th><%= t('orders.col.catalogNumber') %></th>
         <th><%= t('orders.col.deliveryDate') %></th>
-        <th><%= t('orders.col.notify') %></th>
+        <th style="text-align:center"><%= t('orders.col.notify') %></th>
         <th><%= t('orders.col.addedBy') %></th>
         <th><%= t('orders.col.date') %></th>
         <% if (showWsCol) { %><th><%= t('admin.workspace.col') %></th><% } %>
+        <th></th>
       </tr>
     </thead>
     <tbody>
       <% items.forEach(function(item) { %>
-      <tr>
+      <tr data-order-id="<%= item.id %>">
         <td class="col-check">
           <input type="checkbox" name="ids" value="<%= item.id %>" class="row-check">
         </td>
@@ -88,7 +105,7 @@
           <%= dd ? dd.toLocaleDateString(currentLang === 'ru' ? 'ru-RU' : 'en-GB') : '—' %>
         </td>
         <td style="text-align:center">
-          <% if (item.notifyEnabled) { %><span title="<%= t('orders.field.notifyEnabled') %>">🔔</span><% } %>
+          <% if (item.notifyOnOverdue) { %><span title="<%= t('orders.field.notifyOnOverdue') %>">🔔</span><% } %>
         </td>
         <td><%= item.creator?.displayName || '—' %></td>
         <td class="cell-mono" style="white-space:nowrap">
@@ -97,6 +114,12 @@
         <% if (showWsCol) { %>
         <td><% if (item.workspace) { %><span class="ws-badge <%= wsColor(item.workspace.id) %>"><%= wsLabel(item.workspace) %></span><% } else { %>—<% } %></td>
         <% } %>
+        <td class="td-actions">
+          <button type="button" class="btn btn-ghost btn-sm"
+                  onclick="editOrderItem(<%= item.id %>)">
+            <%= t('btn.edit') %>
+          </button>
+        </td>
       </tr>
       <% }) %>
     </tbody>

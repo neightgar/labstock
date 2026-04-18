@@ -56,6 +56,8 @@
               data-name-en="<%= item.nameEn || '' %>"
               data-manufacturer="<%= item.manufacturer?.name || '' %>"
               data-catalog-number="<%= item.catalogNumber || '' %>"
+              data-supplier="<%= item.supplier?.name || '' %>"
+              data-supplier-catalog-number="<%= item.supplierCatalogNumber || '' %>"
               data-unit="<%= item.unit %>">
         <%= t('btn.order') %>
       </button>

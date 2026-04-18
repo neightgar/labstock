@@ -25,13 +25,14 @@ function buildPayload(body) {
   if (!unit) errors.push("unit required");
   else data.unit = unit;
 
-  data.manufacturer    = body.manufacturer?.trim()  || null;
-  data.catalogNumber   = body.catalogNumber?.trim() || null;
-  data.deliveryDate    = body.deliveryDate ? new Date(body.deliveryDate) : null;
-  data.notifyOnOverdue = body.notifyOnOverdue === "on" || body.notifyOnOverdue === true;
-  data.notifyEnabled   = body.notifyEnabled  === "on" || body.notifyEnabled  === true;
-  data.entityType      = body.entityType?.trim()    || "manual";
-  data.entityId        = body.entityId ? parseInt(body.entityId) : null;
+  data.manufacturer         = body.manufacturer?.trim()         || null;
+  data.catalogNumber        = body.catalogNumber?.trim()        || null;
+  data.supplier             = body.supplier?.trim()             || null;
+  data.supplierCatalogNumber = body.supplierCatalogNumber?.trim() || null;
+  data.deliveryDate         = body.deliveryDate ? new Date(body.deliveryDate) : null;
+  data.notifyOnOverdue      = body.notifyOnOverdue === "on" || body.notifyOnOverdue === true;
+  data.entityType           = body.entityType?.trim()           || "manual";
+  data.entityId             = body.entityId ? parseInt(body.entityId) : null;
 
   if (errors.length) return { error: errors.join("; ") };
   return { data };
@@ -106,6 +107,29 @@ router.post("/delete", async (req, res) => {
   await svc.deleteMany(ids);
   await logAudit(req.session.userId, "order_item", 0, "DELETE_MANY", { ids });
   res.redirect("/orders?deleted=" + ids.length);
+});
+
+// ── GET /orders/:id  (JSON — for edit modal) ──────────────
+router.get("/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (!id) return res.status(404).json({ error: "Not found" });
+  const item = await svc.findById(id);
+  if (!item) return res.status(404).json({ error: "Not found" });
+  res.json({ ok: true, item });
+});
+
+// ── PUT /orders/:id  (edit from modal) ───────────────────
+router.put("/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (!id) return res.status(400).json({ ok: false, error: "Invalid id" });
+
+  const { error, data } = buildPayload(req.body);
+  if (error) return res.status(400).json({ ok: false, error });
+
+  const item = await svc.update(id, data);
+  await logAudit(req.session.userId, "order_item", id, "UPDATE", data);
+
+  return res.json({ ok: true, item });
 });
 
 module.exports = router;

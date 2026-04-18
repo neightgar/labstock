@@ -9,6 +9,7 @@ const Database = require("better-sqlite3");
 const SqliteStore = require("better-sqlite3-session-store")(session);
 const { i18nMiddleware } = require("./i18n");
 const { requireAuth } = require("./middleware/auth");
+const { injectLocals } = require("./middleware/injectLocals");
 
 const app = express();
 
@@ -73,6 +74,9 @@ app.get("/api/docs.json", (_req, res) => res.redirect(301, "/api/v1/docs.json"))
 
 // ── Auth middleware (whitelists /login, /setup) ──────────
 app.use(requireAuth);
+
+// ── Global locals (suppliers for order modal, etc.) ──────
+app.use(injectLocals);
 
 // ── Uploaded files (auth-protected static) ───────────────
 const { uploadDir } = require("./utils/upload");

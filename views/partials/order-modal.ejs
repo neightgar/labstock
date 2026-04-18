@@ -14,9 +14,19 @@
 }
 </script>
 
+<!-- ── Suppliers datalist ──────────────────────────────── -->
+<datalist id="om-suppliers-list">
+  <% (typeof suppliers !== 'undefined' ? suppliers : []).forEach(function(s) { %>
+    <option value="<%= s.name %>">
+  <% }) %>
+</datalist>
+
 <!-- ── Order Modal ────────────────────────────────────── -->
 <div id="order-modal" class="modal-overlay"
-     data-success="<%= t('orders.added') %>"
+     data-title-create="<%= t('orders.modal.title') %>"
+     data-title-edit="<%= t('orders.modal.editTitle') %>"
+     data-msg-added="<%= t('orders.added') %>"
+     data-msg-saved="<%= t('feedback.saved') %>"
      role="dialog" aria-modal="true" aria-labelledby="om-title">
   <div class="modal-box">
     <div class="modal-header">
@@ -61,24 +71,31 @@
       </div>
 
       <div class="form-group">
+        <label class="form-label" for="om-supplier"><%= t('orders.field.supplier') %></label>
+        <input type="text" id="om-supplier" name="supplier" class="form-input"
+               list="om-suppliers-list" autocomplete="off">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="om-supplierCatalogNumber"><%= t('orders.field.supplierCatalogNumber') %></label>
+        <input type="text" id="om-supplierCatalogNumber" name="supplierCatalogNumber" class="form-input">
+      </div>
+
+      <div class="form-group">
         <label class="form-label" for="om-deliveryDate"><%= t('orders.field.deliveryDate') %></label>
         <input type="date" id="om-deliveryDate" name="deliveryDate" class="form-input">
       </div>
 
-      <div class="form-group" style="display:flex;flex-direction:column;gap:8px">
+      <div class="form-group">
         <label class="checkbox-label">
           <input type="checkbox" id="om-notifyOnOverdue" name="notifyOnOverdue" disabled>
           <span><%= t('orders.field.notifyOnOverdue') %></span>
-        </label>
-        <label class="checkbox-label">
-          <input type="checkbox" id="om-notifyEnabled" name="notifyEnabled">
-          <span><%= t('orders.field.notifyEnabled') %></span>
         </label>
       </div>
 
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" id="om-cancel"><%= t('btn.cancel') %></button>
-        <button type="submit" class="btn btn-primary"><%= t('orders.modal.submit') %></button>
+        <button type="submit" class="btn btn-primary" id="om-submit"><%= t('orders.modal.submit') %></button>
       </div>
     </form>
   </div>
@@ -89,29 +106,48 @@
 
 <script>
 (function () {
-  var modal    = document.getElementById('order-modal');
-  var form     = document.getElementById('order-modal-form');
-  var qtyInput = document.getElementById('om-quantity');
+  var modal      = document.getElementById('order-modal');
+  var form       = document.getElementById('order-modal-form');
+  var qtyInput   = document.getElementById('om-quantity');
+  var titleEl    = document.getElementById('om-title');
+  var submitBtn  = document.getElementById('om-submit');
+  var currentEditId = null;
+
+  var LABEL_CREATE = modal.dataset.titleCreate;
+  var LABEL_EDIT   = modal.dataset.titleEdit;
+  var LABEL_ADD    = submitBtn.textContent;
+  var LABEL_SAVE   = '<%= t("btn.save") %>';
 
   function openOrderModal(data) {
-    document.getElementById('om-entityType').value    = data.entityType    || 'manual';
-    document.getElementById('om-entityId').value      = data.entityId      || '';
-    document.getElementById('om-nameRu').value        = data.nameRu        || '';
-    document.getElementById('om-nameEn').value        = data.nameEn        || '';
-    document.getElementById('om-unit').value          = data.unit          || '';
-    document.getElementById('om-manufacturer').value  = data.manufacturer  || '';
-    document.getElementById('om-catalogNumber').value = data.catalogNumber || '';
-    document.getElementById('om-deliveryDate').value  = '';
-    document.getElementById('om-notifyOnOverdue').checked  = false;
-    document.getElementById('om-notifyOnOverdue').disabled = true;
-    document.getElementById('om-notifyEnabled').checked    = false;
-    qtyInput.value = '';
+    currentEditId = data.id || null;
+    titleEl.textContent    = currentEditId ? LABEL_EDIT   : LABEL_CREATE;
+    submitBtn.textContent  = currentEditId ? LABEL_SAVE   : LABEL_ADD;
+
+    document.getElementById('om-entityType').value            = data.entityType            || 'manual';
+    document.getElementById('om-entityId').value              = data.entityId              || '';
+    document.getElementById('om-nameRu').value                = data.nameRu               || '';
+    document.getElementById('om-nameEn').value                = data.nameEn               || '';
+    document.getElementById('om-unit').value                  = data.unit                 || '';
+    document.getElementById('om-manufacturer').value          = data.manufacturer          || '';
+    document.getElementById('om-catalogNumber').value         = data.catalogNumber         || '';
+    document.getElementById('om-supplier').value              = data.supplier              || '';
+    document.getElementById('om-supplierCatalogNumber').value = data.supplierCatalogNumber || '';
+
+    var dd = data.deliveryDate ? String(data.deliveryDate).slice(0, 10) : '';
+    document.getElementById('om-deliveryDate').value = dd;
+
+    var notifyCheck = document.getElementById('om-notifyOnOverdue');
+    notifyCheck.disabled = !dd;
+    notifyCheck.checked  = !!(dd && data.notifyOnOverdue);
+
+    qtyInput.value = data.quantity != null ? data.quantity : '';
     modal.classList.add('is-open');
     setTimeout(function () { qtyInput.focus(); }, 80);
   }
 
   function closeOrderModal() {
     modal.classList.remove('is-open');
+    currentEditId = null;
   }
 
   // deliveryDate → notifyOnOverdue dependency
@@ -125,7 +161,6 @@
     }
   });
 
-  // Wire close buttons
   document.getElementById('om-close').addEventListener('click', closeOrderModal);
   document.getElementById('om-cancel').addEventListener('click', closeOrderModal);
   modal.addEventListener('click', function (e) {
@@ -139,26 +174,31 @@
   document.querySelectorAll('.btn-order').forEach(function (btn) {
     btn.addEventListener('click', function () {
       openOrderModal({
-        entityType:    btn.dataset.entityType,
-        entityId:      btn.dataset.entityId,
-        nameRu:        btn.dataset.nameRu,
-        nameEn:        btn.dataset.nameEn,
-        manufacturer:  btn.dataset.manufacturer,
-        catalogNumber: btn.dataset.catalogNumber,
-        unit:          btn.dataset.unit,
+        entityType:            btn.dataset.entityType,
+        entityId:              btn.dataset.entityId,
+        nameRu:                btn.dataset.nameRu,
+        nameEn:                btn.dataset.nameEn,
+        manufacturer:          btn.dataset.manufacturer,
+        catalogNumber:         btn.dataset.catalogNumber,
+        supplier:              btn.dataset.supplier              || '',
+        supplierCatalogNumber: btn.dataset.supplierCatalogNumber || '',
+        unit:                  btn.dataset.unit,
       });
     });
   });
 
-  // Submit via fetch so user stays on the current page
+  // Submit: POST (create) or PUT (edit)
   form.addEventListener('submit', function (e) {
     e.preventDefault();
-    var submitBtn = form.querySelector('[type="submit"]');
-    if (submitBtn) submitBtn.disabled = true;
+    var editId = currentEditId;
+    submitBtn.disabled = true;
 
-    var body = new URLSearchParams(new FormData(form));
-    fetch('/orders', {
-      method:  'POST',
+    var body   = new URLSearchParams(new FormData(form));
+    var url    = editId ? '/orders/' + editId : '/orders';
+    var method = editId ? 'PUT' : 'POST';
+
+    fetch(url, {
+      method:  method,
       headers: { 'Accept': 'application/json' },
       body:    body,
     })
@@ -166,7 +206,12 @@
       .then(function (data) {
         if (data.ok) {
           closeOrderModal();
-          if (window.showToast) window.showToast(modal.dataset.success, 'success');
+          if (editId && data.item) {
+            updateOrderRow(data.item);
+            if (window.showToast) window.showToast(modal.dataset.msgSaved, 'success');
+          } else {
+            if (window.showToast) window.showToast(modal.dataset.msgAdded, 'success');
+          }
         } else {
           if (window.showToast) window.showToast(data.error || 'Error', 'error');
         }
@@ -175,11 +220,57 @@
         if (window.showToast) window.showToast('Error', 'error');
       })
       .finally(function () {
-        if (submitBtn) submitBtn.disabled = false;
+        submitBtn.disabled = false;
       });
   });
 
-  // Expose globally
+  function esc(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function updateOrderRow(item) {
+    var row = document.querySelector('tr[data-order-id="' + item.id + '"]');
+    if (!row) return;
+    var cells = row.querySelectorAll('td');
+    // 0: checkbox, 1: name, 2: qty, 3: unit, 4: manufacturer, 5: catalogNumber,
+    // 6: deliveryDate, 7: notify, 8: addedBy, 9: date, [10: ws], last: actions
+    cells[1].innerHTML =
+      '<div class="cell-name">' + esc(item.nameRu) + '</div>' +
+      (item.nameEn && item.nameEn !== item.nameRu
+        ? '<div class="cell-sub">' + esc(item.nameEn) + '</div>'
+        : '');
+    cells[2].className = 'cell-mono';
+    cells[2].textContent = item.quantity;
+    cells[3].textContent = item.unit;
+    cells[4].textContent = item.manufacturer || '—';
+    cells[5].className = 'cell-mono';
+    cells[5].textContent = item.catalogNumber || '—';
+
+    var dd = item.deliveryDate ? new Date(item.deliveryDate) : null;
+    var now = new Date();
+    cells[6].className = 'cell-mono' + (dd && dd < now ? ' text-danger' : '');
+    cells[6].style.whiteSpace = 'nowrap';
+    cells[6].textContent = dd
+      ? dd.toLocaleDateString('<%= currentLang === "ru" ? "ru-RU" : "en-GB" %>')
+      : '—';
+
+    cells[7].innerHTML = item.notifyOnOverdue
+      ? '<span title="<%= t("orders.field.notifyOnOverdue") %>">🔔</span>'
+      : '';
+  }
+
+  // Expose globals
   window.openOrderModal = openOrderModal;
+
+  window.editOrderItem = function (id) {
+    fetch('/orders/' + id, { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.ok && data.item) openOrderModal(data.item);
+      })
+      .catch(function () {
+        if (window.showToast) window.showToast('Error', 'error');
+      });
+  };
 }());
 </script>

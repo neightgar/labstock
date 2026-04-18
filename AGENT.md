@@ -9,7 +9,7 @@ Self-hosted on Synology NAS via Docker. Based on the architecture of home-apothe
 
 ```
 ~/Projects/home-apothecary/   ← reference project, read-only, DO NOT MODIFY
-~/Projects/MRB-DB/            ← this project
+~/Projects/LabStock/            ← this project
 ```
 
 ## Priorities

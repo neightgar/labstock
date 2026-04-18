@@ -32,7 +32,6 @@ async function checkOverdueOrders() {
       where: {
         deliveryDate:    { lt: today },
         notifyOnOverdue: true,
-        notifyEnabled:   true,
       },
       include: {
         creator: { select: { id: true, telegramChatId: true, language: true } },

@@ -68,4 +68,16 @@ async function count(user = null) {
   return prisma.orderItem.count({ where: wsWhere(user) });
 }
 
-module.exports = { create, findAll, deleteMany, findByIds, count };
+// ── findById ──────────────────────────────────────────────
+
+async function findById(id) {
+  return prisma.orderItem.findUnique({ where: { id }, include: INCLUDE });
+}
+
+// ── update ────────────────────────────────────────────────
+
+async function update(id, data) {
+  return prisma.orderItem.update({ where: { id }, data, include: INCLUDE });
+}
+
+module.exports = { create, findAll, deleteMany, findByIds, findById, update, count };

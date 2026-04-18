@@ -434,5 +434,17 @@
   "admin.error.wsDefaultDelete": "Cannot delete the default workspace",
   "admin.error.wsNotEmpty":      "Cannot delete: workspace still has records",
 
-  "error.403": "Access denied"
+  "error.403": "Access denied",
+
+  "units.kg":   "kg",
+  "units.g":    "g",
+  "units.mg":   "mg",
+  "units.mcg":  "mcg",
+  "units.l":    "L",
+  "units.ml":   "mL",
+  "units.mcl":  "μL",
+  "units.pcs":  "pcs",
+  "units.pack": "pack",
+  "units.amp":  "amp",
+  "units.vial": "vial"
 }

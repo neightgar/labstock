@@ -93,10 +93,11 @@
     </div>
     <div class="field">
       <label class="field-label"><%= t('reagents.field.unit') %> *</label>
-      <input type="text" name="unit" required value="<%= item?.unit || '' %>" list="units-list" placeholder="шт, упак...">
+      <input type="text" name="unit" required value="<%= item?.unit || '' %>" list="units-list" placeholder="шт, уп, мл...">
       <datalist id="units-list">
-        <option value="шт"><option value="упак"><option value="пара"><option value="рулон">
-        <option value="бокс"><option value="мл"><option value="л">
+        <option value="кг"><option value="г"><option value="мг"><option value="мкг">
+        <option value="л"><option value="мл"><option value="мкл">
+        <option value="шт"><option value="уп"><option value="амп"><option value="фл">
       </datalist>
     </div>
   </div>

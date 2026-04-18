@@ -434,5 +434,17 @@
   "admin.error.wsDefaultDelete": "Нельзя удалить пространство по умолчанию",
   "admin.error.wsNotEmpty":      "Нельзя удалить: в пространстве есть записи",
 
-  "error.403": "Доступ запрещён"
+  "error.403": "Доступ запрещён",
+
+  "units.kg":   "кг",
+  "units.g":    "г",
+  "units.mg":   "мг",
+  "units.mcg":  "мкг",
+  "units.l":    "л",
+  "units.ml":   "мл",
+  "units.mcl":  "мкл",
+  "units.pcs":  "шт",
+  "units.pack": "уп",
+  "units.amp":  "амп",
+  "units.vial": "фл"
 }

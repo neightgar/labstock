@@ -57,16 +57,17 @@
     <colgroup>
       <col style="width:40px">
       <col>
-      <col style="width:72px">
-      <col style="width:60px">
-      <col style="width:120px">
-      <col style="width:110px">
-      <col style="width:120px">
+      <col style="width:64px">
       <col style="width:54px">
+      <col style="width:110px">
+      <col style="width:110px">
+      <col style="width:100px">
+      <col style="width:100px">
+      <col style="width:46px">
       <col style="width:90px">
-      <col style="width:86px">
-      <% if (showWsCol) { %><col style="width:100px"><% } %>
-      <col style="width:88px">
+      <col style="width:80px">
+      <% if (showWsCol) { %><col style="width:96px"><% } %>
+      <col style="width:38px">
     </colgroup>
     <thead>
       <tr>
@@ -75,6 +76,7 @@
         <th><%= t('orders.col.quantity') %></th>
         <th><%= t('orders.col.unit') %></th>
         <th><%= t('orders.col.manufacturer') %></th>
+        <th><%= t('orders.col.supplier') %></th>
         <th><%= t('orders.col.catalogNumber') %></th>
         <th><%= t('orders.col.deliveryDate') %></th>
         <th style="text-align:center"><%= t('orders.col.notify') %></th>
@@ -99,6 +101,7 @@
         <td class="cell-mono"><%= item.quantity %></td>
         <td><%= item.unit %></td>
         <td><%= item.manufacturer || '—' %></td>
+        <td><%= item.supplier || '—' %></td>
         <td class="cell-mono"><%= item.catalogNumber || '—' %></td>
         <% var now = new Date(); var dd = item.deliveryDate ? new Date(item.deliveryDate) : null; %>
         <td class="cell-mono<%= dd && dd < now ? ' text-danger' : '' %>" style="white-space:nowrap">
@@ -115,9 +118,10 @@
         <td><% if (item.workspace) { %><span class="ws-badge <%= wsColor(item.workspace.id) %>"><%= wsLabel(item.workspace) %></span><% } else { %>—<% } %></td>
         <% } %>
         <td class="td-actions">
-          <button type="button" class="btn btn-ghost btn-sm"
-                  onclick="editOrderItem(<%= item.id %>)">
-            <%= t('btn.edit') %>
+          <button type="button" class="btn btn-ghost btn-sm btn-icon"
+                  onclick="editOrderItem(<%= item.id %>)"
+                  title="<%= t('btn.edit') %>">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
         </td>
       </tr>

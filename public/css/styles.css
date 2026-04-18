@@ -967,9 +967,7 @@ textarea.form-input { resize: vertical; min-height: 64px; }
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--r-lg);
-  overflow-x: auto;
   margin-bottom: 14px;
-  -webkit-overflow-scrolling: touch;
 }
 
 .data-table {
@@ -1021,7 +1019,8 @@ textarea.form-input { resize: vertical; min-height: 64px; }
 .cell-name { font-weight: 500; color: var(--text); }
 .cell-sub  { font-size: 0.74rem; color: var(--text-muted); margin-top: 2px; }
 .cell-mono { font-family: var(--font-mono); font-size: 0.77rem; color: var(--text-muted); }
-.td-actions { white-space: nowrap; text-align: right; width: 1%; }
+.td-actions { white-space: nowrap; text-align: center; width: 1%; }
+.btn-icon   { padding: 4px 6px; line-height: 1; }
 .cell-qty  { font-family: var(--font-mono); font-weight: 600; }
 .cell-qty-low { color: var(--amber) !important; }
 
@@ -1718,6 +1717,12 @@ textarea.form-input { resize: vertical; min-height: 64px; }
 
   .form-row { grid-template-columns: 1fr; }
   .field-row { grid-template-columns: 1fr; }
+
+  .data-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .data-table { min-width: 760px; }
 }
 
 /* ── Responsive — Mobile ────────────────────────────────── */

@@ -232,8 +232,8 @@
     var row = document.querySelector('tr[data-order-id="' + item.id + '"]');
     if (!row) return;
     var cells = row.querySelectorAll('td');
-    // 0: checkbox, 1: name, 2: qty, 3: unit, 4: manufacturer, 5: catalogNumber,
-    // 6: deliveryDate, 7: notify, 8: addedBy, 9: date, [10: ws], last: actions
+    // 0: checkbox, 1: name, 2: qty, 3: unit, 4: manufacturer, 5: supplier,
+    // 6: catalogNumber, 7: deliveryDate, 8: notify, 9: addedBy, 10: date, [11: ws], last: actions
     cells[1].innerHTML =
       '<div class="cell-name">' + esc(item.nameRu) + '</div>' +
       (item.nameEn && item.nameEn !== item.nameRu
@@ -243,18 +243,19 @@
     cells[2].textContent = item.quantity;
     cells[3].textContent = item.unit;
     cells[4].textContent = item.manufacturer || '—';
-    cells[5].className = 'cell-mono';
-    cells[5].textContent = item.catalogNumber || '—';
+    cells[5].textContent = item.supplier || '—';
+    cells[6].className = 'cell-mono';
+    cells[6].textContent = item.catalogNumber || '—';
 
     var dd = item.deliveryDate ? new Date(item.deliveryDate) : null;
     var now = new Date();
-    cells[6].className = 'cell-mono' + (dd && dd < now ? ' text-danger' : '');
-    cells[6].style.whiteSpace = 'nowrap';
-    cells[6].textContent = dd
+    cells[7].className = 'cell-mono' + (dd && dd < now ? ' text-danger' : '');
+    cells[7].style.whiteSpace = 'nowrap';
+    cells[7].textContent = dd
       ? dd.toLocaleDateString('<%= currentLang === "ru" ? "ru-RU" : "en-GB" %>')
       : '—';
 
-    cells[7].innerHTML = item.notifyOnOverdue
+    cells[8].innerHTML = item.notifyOnOverdue
       ? '<span title="<%= t("orders.field.notifyOnOverdue") %>">🔔</span>'
       : '';
   }

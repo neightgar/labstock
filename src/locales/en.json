@@ -324,7 +324,7 @@
   "protocols.stock.notFound":    "Entry deleted",
   "protocols.stock.unavailable": "Unavailable",
 
-  "bot.start.welcome":    "Hi, {name}! 👋\n\nCommands:\n/low — below minimum\n/expiring — expiring soon\n/search <query> — search\n/orders — order list\n/help — help",
+  "bot.start.welcome":    "Hi, {name}! 👋\n\nCommands:\n/low — below minimum\n/expiring — expiring soon\n/search <query> — search\n/orders — order list\n/edit — edit reagent quantity\n/help — help",
   "bot.start.askUsername": "Hi! Send your username to link your account.",
   "bot.start.linked":     "✅ Account linked! Hello, {name}!",
   "bot.start.notFound":   "❌ User «{username}» not found. Try again.",
@@ -352,9 +352,22 @@
   "bot.orders.count": "{count} items",
   "bot.orders.empty": "Order list is empty",
 
-  "bot.help.text": "/low — what's below minimum\n/expiring — expiring in 30 days\n/search <query> — search the database\n/orders — order list\n/help — this help",
+  "bot.help.text": "/low — what's below minimum\n/expiring — expiring in 30 days\n/search <query> — search the database\n/orders — order list\n/edit — edit reagent quantity\n/help — this help",
 
   "bot.unknown": "Unknown command. /help — list of commands.",
+
+  "bot.edit.askName":       "Enter reagent name:",
+  "bot.edit.notFound":      "Reagent not found. Try again:",
+  "bot.edit.multipleFound": "Multiple reagents found:",
+  "bot.edit.enterNumber":   "Enter number:",
+  "bot.edit.invalidNumber": "Invalid number. Enter 1 to {max}:",
+  "bot.edit.currentState":  "{name}\nCurrent quantity: {qty} {unit}\nEnter change:\nExamples: - 10 мг / + 0.5 г / - 2 мкл",
+  "bot.edit.badFormat":     "Invalid format. Use: - 10 мг or + 0.5 г. Try again:",
+  "bot.edit.confirm":       "{name}\n{oldQty} {unit} → {newQty} {unit}\nConfirm change? (Yes / No)",
+  "bot.edit.confirmHint":   "Reply Yes or No.",
+  "bot.edit.done":          "✅ Updated: {name} — {newQty} {unit}",
+  "bot.edit.cancelled":     "Cancelled.",
+  "bot.edit.timeout":       "Editing session expired.",
 
   "bot.notify.subject":  "📋 Daily inventory check",
   "bot.notify.lowStock": "📉 Below minimum:",

@@ -3,12 +3,16 @@ const { sendTelegramMessage } = require("./telegram");
 const { getSetting } = require("./settings");
 const { bt } = require("./botI18n");
 const { search } = require("./search");
+const { parseChange, applyChange } = require("../utils/unitConverter");
+const { logAudit } = require("../middleware/audit");
 
 const POLLING_INTERVAL_MS = 5000;
-const EXPIRY_WINDOW_DAYS = 30; // /expiring command window
+const EXPIRY_WINDOW_DAYS  = 30; // /expiring command window
+const EDIT_TIMEOUT_MS     = 5 * 60 * 1000; // 5 minutes
 
-const userStates = new Map(); // chatId -> { step }
-const userLangs  = new Map(); // chatId -> lang (cache)
+const userStates  = new Map(); // chatId -> { step }
+const userLangs   = new Map(); // chatId -> lang (cache)
+const editSessions = new Map(); // chatId -> edit state
 
 let lastUpdateId    = 0;
 let pollingTimer    = null;
@@ -103,6 +107,177 @@ async function telegramRequest(method, body) {
 
 async function answerCallbackQuery(id) {
   await telegramRequest("answerCallbackQuery", { callback_query_id: id });
+}
+
+// ── /edit state machine ───────────────────────────────────
+
+function clearEditSession(chatId) {
+  const sess = editSessions.get(String(chatId));
+  if (sess?.timer) clearTimeout(sess.timer);
+  editSessions.delete(String(chatId));
+}
+
+function resetEditTimer(chatId, lang) {
+  const sess = editSessions.get(String(chatId));
+  if (!sess) return;
+  if (sess.timer) clearTimeout(sess.timer);
+  sess.timer = setTimeout(async () => {
+    editSessions.delete(String(chatId));
+    await sendTelegramMessage(chatId, bt(lang, "bot.edit.timeout"));
+  }, EDIT_TIMEOUT_MS);
+}
+
+async function handleEditStart(chatId, lang) {
+  clearEditSession(chatId);
+  editSessions.set(String(chatId), { step: "search", query: "", candidates: [], selected: null, change: null, timer: null });
+  resetEditTimer(chatId, lang);
+  await sendTelegramMessage(chatId, bt(lang, "bot.edit.askName"));
+}
+
+async function handleEditStep(chatId, text, user, lang) {
+  const sess = editSessions.get(String(chatId));
+  if (!sess) return false;
+
+  if (text === "/cancel") {
+    clearEditSession(chatId);
+    await sendTelegramMessage(chatId, bt(lang, "bot.edit.cancelled"));
+    return true;
+  }
+
+  resetEditTimer(chatId, lang);
+
+  // ── step: search ──────────────────────────────────────
+  if (sess.step === "search") {
+    const query = text.trim();
+    const isAdmin    = user.role === "admin";
+    const workspaces = await getWorkspaces(user);
+    const wsFilter   = wsBotWhere(workspaces, isAdmin);
+
+    const candidates = await prisma.reagent.findMany({
+      where: {
+        deletedAt: null,
+        OR: [{ nameRu: { contains: query } }, { nameEn: { contains: query } }],
+        ...wsFilter,
+      },
+      select: { id: true, nameRu: true, nameEn: true, quantity: true, unit: true },
+      orderBy: { nameRu: "asc" },
+      take: 10,
+    });
+
+    if (candidates.length === 0) {
+      await sendTelegramMessage(chatId, bt(lang, "bot.edit.notFound"));
+      return true;
+    }
+
+    if (candidates.length === 1) {
+      sess.selected = candidates[0];
+      sess.step = "change";
+      await sendTelegramMessage(chatId, bt(lang, "bot.edit.currentState", {
+        name: getName(candidates[0], lang),
+        qty:  candidates[0].quantity,
+        unit: candidates[0].unit,
+      }));
+      return true;
+    }
+
+    sess.candidates = candidates;
+    sess.step = "select";
+    const lines = [bt(lang, "bot.edit.multipleFound")];
+    candidates.forEach((c, i) => {
+      lines.push(`${i + 1}. ${getName(c, lang)} — ${c.quantity} ${c.unit}`);
+    });
+    lines.push(bt(lang, "bot.edit.enterNumber"));
+    await sendTelegramMessage(chatId, lines.join("\n"));
+    return true;
+  }
+
+  // ── step: select ──────────────────────────────────────
+  if (sess.step === "select") {
+    const n = parseInt(text.trim(), 10);
+    if (isNaN(n) || n < 1 || n > sess.candidates.length) {
+      await sendTelegramMessage(chatId, bt(lang, "bot.edit.invalidNumber", { max: sess.candidates.length }));
+      return true;
+    }
+    sess.selected = sess.candidates[n - 1];
+    sess.step = "change";
+    await sendTelegramMessage(chatId, bt(lang, "bot.edit.currentState", {
+      name: getName(sess.selected, lang),
+      qty:  sess.selected.quantity,
+      unit: sess.selected.unit,
+    }));
+    return true;
+  }
+
+  // ── step: change ──────────────────────────────────────
+  if (sess.step === "change") {
+    const parsed = parseChange(text);
+    if (!parsed) {
+      await sendTelegramMessage(chatId, bt(lang, "bot.edit.badFormat"));
+      return true;
+    }
+
+    try {
+      const newQty = applyChange(
+        sess.selected.quantity, sess.selected.unit,
+        parsed.sign * parsed.value, parsed.unit,
+      );
+      sess.change = { newQty };
+      sess.step   = "confirm";
+      await sendTelegramMessage(chatId, bt(lang, "bot.edit.confirm", {
+        name:   getName(sess.selected, lang),
+        oldQty: sess.selected.quantity,
+        unit:   sess.selected.unit,
+        newQty,
+      }));
+    } catch (err) {
+      await sendTelegramMessage(chatId, err.message + "\n" + bt(lang, "bot.edit.currentState", {
+        name: getName(sess.selected, lang),
+        qty:  sess.selected.quantity,
+        unit: sess.selected.unit,
+      }));
+    }
+    return true;
+  }
+
+  // ── step: confirm ─────────────────────────────────────
+  if (sess.step === "confirm") {
+    const answer = text.trim().toLowerCase();
+    const isYes  = answer === "да" || answer === "yes";
+    const isNo   = answer === "нет" || answer === "no";
+
+    if (!isYes && !isNo) {
+      await sendTelegramMessage(chatId, bt(lang, "bot.edit.confirmHint"));
+      return true;
+    }
+
+    if (isNo) {
+      clearEditSession(chatId);
+      await sendTelegramMessage(chatId, bt(lang, "bot.edit.cancelled"));
+      return true;
+    }
+
+    const { selected, change } = sess;
+    clearEditSession(chatId);
+
+    await prisma.reagent.update({
+      where: { id: selected.id },
+      data:  { quantity: change.newQty },
+    });
+
+    await logAudit(user.id, "reagent", selected.id, "update", {
+      quantity: { from: selected.quantity, to: change.newQty },
+      source: "telegram_bot",
+    });
+
+    await sendTelegramMessage(chatId, bt(lang, "bot.edit.done", {
+      name:   getName(selected, lang),
+      newQty: change.newQty,
+      unit:   selected.unit,
+    }));
+    return true;
+  }
+
+  return false;
 }
 
 // ── Command handlers ──────────────────────────────────────
@@ -455,12 +630,19 @@ async function processMessage(message) {
     return;
   }
 
-  userLangs.set(String(chatId), user.language || "ru");
+  const lang = user.language || "ru";
+  userLangs.set(String(chatId), lang);
 
-  if (text === "/low")      { await handleLow(chatId);      return; }
-  if (text === "/expiring") { await handleExpiring(chatId); return; }
-  if (text === "/orders")   { await handleOrders(chatId);   return; }
-  if (text === "/help")     { await handleHelp(chatId);     return; }
+  // Route to /edit state machine: /cancel always, non-commands when session active
+  if (text === "/cancel" || (editSessions.has(String(chatId)) && !text.startsWith("/"))) {
+    if (await handleEditStep(chatId, text, user, lang)) return;
+  }
+
+  if (text === "/edit")     { await handleEditStart(chatId, lang); return; }
+  if (text === "/low")      { await handleLow(chatId);             return; }
+  if (text === "/expiring") { await handleExpiring(chatId);        return; }
+  if (text === "/orders")   { await handleOrders(chatId);          return; }
+  if (text === "/help")     { await handleHelp(chatId);            return; }
 
   if (text.startsWith("/search")) {
     const query = text.slice("/search".length).trim();
@@ -468,7 +650,6 @@ async function processMessage(message) {
     return;
   }
 
-  const lang = user.language || "ru";
   await sendTelegramMessage(chatId, bt(lang, "bot.unknown"));
 }
 

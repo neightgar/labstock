@@ -324,7 +324,7 @@
   "protocols.stock.notFound":    "Запись удалена",
   "protocols.stock.unavailable": "Недоступно",
 
-  "bot.start.welcome":    "Привет, {name}! 👋\n\nКоманды:\n/low — ниже минимума\n/expiring — истекает срок\n/search <запрос> — поиск\n/orders — список заказов\n/help — справка",
+  "bot.start.welcome":    "Привет, {name}! 👋\n\nКоманды:\n/low — ниже минимума\n/expiring — истекает срок\n/search <запрос> — поиск\n/orders — список заказов\n/edit — изменить количество реактива\n/help — справка",
   "bot.start.askUsername": "Привет! Для привязки аккаунта отправь свой логин.",
   "bot.start.linked":     "✅ Аккаунт привязан! Привет, {name}!",
   "bot.start.notFound":   "❌ Пользователь «{username}» не найден. Попробуй ещё раз.",
@@ -352,9 +352,22 @@
   "bot.orders.count": "{count} позиций",
   "bot.orders.empty": "Список заказов пуст",
 
-  "bot.help.text": "/low — что ниже минимума\n/expiring — что истекает в 30 дней\n/search <запрос> — поиск по БД\n/orders — список заказов\n/help — эта справка",
+  "bot.help.text": "/low — что ниже минимума\n/expiring — что истекает в 30 дней\n/search <запрос> — поиск по БД\n/orders — список заказов\n/edit — изменить количество реактива\n/help — эта справка",
 
   "bot.unknown": "Неизвестная команда. /help — список команд.",
+
+  "bot.edit.askName":       "Введите название реактива:",
+  "bot.edit.notFound":      "Реактив не найден. Попробуйте ещё раз:",
+  "bot.edit.multipleFound": "Найдено несколько реактивов:",
+  "bot.edit.enterNumber":   "Введите номер:",
+  "bot.edit.invalidNumber": "Неверный номер. Введите от 1 до {max}:",
+  "bot.edit.currentState":  "{name}\nТекущее количество: {qty} {unit}\nВведите изменение:\nПримеры: - 10 мг / + 0.5 г / - 2 мкл",
+  "bot.edit.badFormat":     "Неверный формат. Используйте: - 10 мг или + 0.5 г. Попробуйте ещё раз:",
+  "bot.edit.confirm":       "{name}\n{oldQty} {unit} → {newQty} {unit}\nПодтвердить изменение? (Да / Нет)",
+  "bot.edit.confirmHint":   "Ответьте Да или Нет.",
+  "bot.edit.done":          "✅ Обновлено: {name} — {newQty} {unit}",
+  "bot.edit.cancelled":     "Отменено.",
+  "bot.edit.timeout":       "Сессия редактирования истекла.",
 
   "bot.notify.subject":  "📋 Ежедневная проверка запасов",
   "bot.notify.lowStock": "📉 Ниже минимума:",

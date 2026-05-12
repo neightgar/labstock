@@ -13,17 +13,37 @@ const { injectLocals } = require("./middleware/injectLocals");
 
 const app = express();
 
+function envBool(name, defaultValue) {
+  const value = process.env[name];
+  if (value === undefined || value === "") return defaultValue;
+  return ["1", "true", "yes", "on"].includes(value.toLowerCase());
+}
+
+function sessionCookieSecure() {
+  const value = (process.env.SESSION_COOKIE_SECURE || "auto").toLowerCase();
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return "auto";
+}
+
+app.set("trust proxy", envBool("TRUST_PROXY", process.env.NODE_ENV === "production") ? 1 : false);
+
 // ── Session store (separate SQLite file) ─────────────────
 // Use a stable path that works both locally and in Docker.
 // In Docker, DATABASE_URL is absolute (file:/app/data/labstock.db) → use its dir.
 // In dev, store sessions next to the Prisma-managed DB (prisma/data/).
 const _dbUrl = process.env.DATABASE_URL || "file:./prisma/data/labstock.db";
 const _dbPath = _dbUrl.replace(/^file:/, "");
+const _configuredSessionDbPath = process.env.SESSION_DB_PATH;
 const SESSION_DB_DIR = path.isAbsolute(_dbPath)
   ? path.dirname(_dbPath)
   : path.join(__dirname, "..", "prisma", "data");
+const SESSION_DB_PATH = _configuredSessionDbPath || path.join(SESSION_DB_DIR, "sessions.db");
 fs.mkdirSync(SESSION_DB_DIR, { recursive: true });
-const sessionDb = new Database(path.join(SESSION_DB_DIR, "sessions.db"));
+if (_configuredSessionDbPath) {
+  fs.mkdirSync(path.dirname(_configuredSessionDbPath), { recursive: true });
+}
+const sessionDb = new Database(SESSION_DB_PATH);
 
 app.use(
   session({
@@ -36,8 +56,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: sessionCookieSecure(),
+      sameSite: process.env.SESSION_COOKIE_SAMESITE || "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })

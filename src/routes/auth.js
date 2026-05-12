@@ -52,7 +52,13 @@ router.post("/login", async (req, res) => {
   // Sync language cookie with user preference
   res.cookie("lang", user.language, { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: false });
 
-  res.redirect("/");
+  req.session.save((err) => {
+    if (err) {
+      console.error("[login] Failed to save session:", err);
+      return res.render("auth/login", { error: res.locals.t("auth.login.error") });
+    }
+    res.redirect("/");
+  });
 });
 
 // ── POST /logout ──────────────────────────────────────────

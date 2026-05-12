@@ -9,8 +9,21 @@ services:
       - /volume1/docker/labstock/data:/app/data
       - /volume1/docker/labstock/uploads:/app/uploads
       - /volume1/docker/labstock/backups:/app/backups
-    env_file:
-      - .env
     environment:
       - NODE_ENV=production
+      - PORT=3000
       - DATABASE_URL=file:/app/data/labstock.db
+      - UPLOAD_DIR=/app/uploads
+      - BACKUP_DIR=/app/backups
+      - SESSION_SECRET=change-this-to-a-long-random-value
+      - SESSION_COOKIE_SECURE=auto
+      - SESSION_COOKIE_SAMESITE=lax
+      - TRUST_PROXY=true
+      - PUID=1000
+      - PGID=1000
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s

@@ -69,39 +69,61 @@ mkdir -p /volume1/docker/labstock/{data,uploads,backups}
 cd /volume1/docker/labstock
 ```
 
-**Step 2 — Create `.env`**
-
-```env
-NODE_ENV=production
-DATABASE_URL=file:/app/data/labstock.db
-SESSION_SECRET=replace-with-a-strong-random-secret
-```
-
-**Step 3 — Create `docker-compose.yml`**
+**Step 2 — Create `docker-compose.yml`**
 
 ```yaml
 services:
   labstock:
     image: ghcr.io/neightgar/labstock:latest
     container_name: labstock
+
     restart: unless-stopped
+
     ports:
       - "3120:3000"
+
     volumes:
-      - ./data:/app/data
-      - ./uploads:/app/uploads
-      - ./backups:/app/backups
-    env_file:
-      - .env
+      - /volume1/docker/labstock/data:/app/data
+      - /volume1/docker/labstock/uploads:/app/uploads
+      - /volume1/docker/labstock/backups:/app/backups
+
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+
+      DATABASE_URL: file:/app/data/labstock.db
+
+      UPLOAD_DIR: /app/uploads
+      BACKUP_DIR: /app/backups
+
+      SESSION_SECRET: change-this-to-a-long-random-value
+      SESSION_COOKIE_SECURE: "false"
+      SESSION_COOKIE_SAMESITE: lax
+
+      TRUST_PROXY: "true"
+
+      PUID: 1000
+      PGID: 1000
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 ```
 
-**Step 4 — Start**
+For a generic Linux server, replace `/volume1/docker/labstock/...` with `/opt/labstock/...` or local relative paths such as `./data`.
+
+Do not add a custom `command` for migrations or permissions. The Docker image entrypoint creates writable directories and runs `prisma migrate deploy` automatically on every start.
+
+**Step 3 — Start**
 
 ```bash
 docker compose up -d
 ```
 
-**Step 5 — Open** `http://localhost:3120`
+**Step 4 — Open** `http://localhost:3120`
 
 On first launch you will be redirected to the Setup Wizard to create an admin account.
 
@@ -162,6 +184,11 @@ All configuration is done via environment variables (`.env`):
 | `SESSION_SECRET` | Session signing secret (required) | 32-char random string |
 | `PORT` | Server port (optional) | `3000` |
 | `BACKUP_DIR` | Backup directory (optional) | `./backups` |
+| `UPLOAD_DIR` | Upload directory (optional) | `./uploads` |
+| `SESSION_COOKIE_SECURE` | Use secure cookies: `false` for direct HTTP, `auto`/`true` behind HTTPS reverse proxy | `false` |
+| `SESSION_COOKIE_SAMESITE` | Session SameSite policy | `lax` |
+| `TRUST_PROXY` | Trust reverse proxy headers | `true` |
+| `PUID` / `PGID` | UID/GID used for mounted file ownership | `1000` |
 
 > **Telegram Bot** is configured through the admin panel at `/admin` — no `.env` variables needed.
 

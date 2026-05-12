@@ -69,39 +69,61 @@ mkdir -p /volume1/docker/labstock/{data,uploads,backups}
 cd /volume1/docker/labstock
 ```
 
-**Шаг 2 — Создать `.env`**
-
-```env
-NODE_ENV=production
-DATABASE_URL=file:/app/data/labstock.db
-SESSION_SECRET=замените-на-случайную-строку-32-символа
-```
-
-**Шаг 3 — Создать `docker-compose.yml`**
+**Шаг 2 — Создать `docker-compose.yml`**
 
 ```yaml
 services:
   labstock:
     image: ghcr.io/neightgar/labstock:latest
     container_name: labstock
+
     restart: unless-stopped
+
     ports:
       - "3120:3000"
+
     volumes:
-      - ./data:/app/data
-      - ./uploads:/app/uploads
-      - ./backups:/app/backups
-    env_file:
-      - .env
+      - /volume1/docker/labstock/data:/app/data
+      - /volume1/docker/labstock/uploads:/app/uploads
+      - /volume1/docker/labstock/backups:/app/backups
+
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+
+      DATABASE_URL: file:/app/data/labstock.db
+
+      UPLOAD_DIR: /app/uploads
+      BACKUP_DIR: /app/backups
+
+      SESSION_SECRET: change-this-to-a-long-random-value
+      SESSION_COOKIE_SECURE: "false"
+      SESSION_COOKIE_SAMESITE: lax
+
+      TRUST_PROXY: "true"
+
+      PUID: 1000
+      PGID: 1000
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 ```
 
-**Шаг 4 — Запустить**
+Для обычного Linux-сервера замените `/volume1/docker/labstock/...` на `/opt/labstock/...` или локальные относительные пути вроде `./data`.
+
+Не добавляйте свой `command` для миграций или прав доступа. EntryPoint Docker-образа сам создаёт директории с правами на запись и выполняет `prisma migrate deploy` при каждом запуске.
+
+**Шаг 3 — Запустить**
 
 ```bash
 docker compose up -d
 ```
 
-**Шаг 5 — Открыть** `http://localhost:3120`
+**Шаг 4 — Открыть** `http://localhost:3120`
 
 При первом запуске откроется Setup Wizard для создания учётной записи администратора.
 
@@ -162,6 +184,11 @@ pm2 save && pm2 startup
 | `SESSION_SECRET` | Секрет подписи сессии (обязательно) | случайная строка 32 символа |
 | `PORT` | Порт сервера (опционально) | `3000` |
 | `BACKUP_DIR` | Директория бэкапов (опционально) | `./backups` |
+| `UPLOAD_DIR` | Директория загрузок (опционально) | `./uploads` |
+| `SESSION_COOKIE_SECURE` | Secure cookies: `false` для прямого HTTP, `auto`/`true` за HTTPS reverse proxy | `false` |
+| `SESSION_COOKIE_SAMESITE` | SameSite-политика cookie сессии | `lax` |
+| `TRUST_PROXY` | Доверять заголовкам reverse proxy | `true` |
+| `PUID` / `PGID` | UID/GID для владельца файлов в bind mounts | `1000` |
 
 > **Telegram Bot** настраивается через панель администратора `/admin` — переменные окружения не нужны.
 

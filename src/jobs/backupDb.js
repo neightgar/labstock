@@ -1,16 +1,42 @@
 const cron = require("node-cron");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 const DB_PATH = process.env.DATABASE_URL
   ? process.env.DATABASE_URL.replace("file:", "")
   : "./data/labstock.db";
 
 const BACKUP_DIR = process.env.BACKUP_DIR || "./backups";
-const RETENTION_DAYS = 30;
+const MAX_BACKUPS = 7;
+const HASH_FILE = path.join(BACKUP_DIR, ".last_backup_hash");
 
 function formatDate(date) {
   return date.toISOString().split("T")[0];
+}
+
+function computeFileHash(filePath) {
+  const fileBuffer = fs.readFileSync(filePath);
+  return crypto.createHash("md5").update(fileBuffer).digest("hex");
+}
+
+function getLastBackupHash() {
+  try {
+    if (fs.existsSync(HASH_FILE)) {
+      return fs.readFileSync(HASH_FILE, "utf8").trim();
+    }
+  } catch (err) {
+    console.error("[backup] Failed to read last backup hash:", err.message);
+  }
+  return null;
+}
+
+function saveBackupHash(hash) {
+  try {
+    fs.writeFileSync(HASH_FILE, hash);
+  } catch (err) {
+    console.error("[backup] Failed to save backup hash:", err.message);
+  }
 }
 
 async function backupDb() {
@@ -25,22 +51,38 @@ async function backupDb() {
       return;
     }
 
-    const filename = `mrb-${formatDate(new Date())}.db`;
+    // Check if database has changed since last backup
+    const currentHash = computeFileHash(dbPath);
+    const lastHash = getLastBackupHash();
+
+    if (currentHash === lastHash) {
+      console.log("[backup] Skipped: no changes detected in database");
+      return;
+    }
+
+    const filename = `labstock-${formatDate(new Date())}.db`;
     const dest = path.join(BACKUP_DIR, filename);
 
     fs.copyFileSync(dbPath, dest);
+    saveBackupHash(currentHash);
     console.log(`[backup] Created: ${filename}`);
 
-    // Rotate: delete backups older than RETENTION_DAYS
-    const cutoff = Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000;
-    const files = fs.readdirSync(BACKUP_DIR).filter((f) => f.endsWith(".db"));
+    // Rotate: keep only MAX_BACKUPS most recent backups
+    const files = fs
+      .readdirSync(BACKUP_DIR)
+      .filter((f) => /^labstock-.*\.db$/.test(f))
+      .map((f) => ({
+        name: f,
+        path: path.join(BACKUP_DIR, f),
+        mtime: fs.statSync(path.join(BACKUP_DIR, f)).mtimeMs,
+      }))
+      .sort((a, b) => b.mtime - a.mtime);
 
-    for (const file of files) {
-      const filepath = path.join(BACKUP_DIR, file);
-      const stat = fs.statSync(filepath);
-      if (stat.mtimeMs < cutoff) {
-        fs.unlinkSync(filepath);
-        console.log(`[backup] Deleted old backup: ${file}`);
+    if (files.length > MAX_BACKUPS) {
+      const toDelete = files.slice(MAX_BACKUPS);
+      for (const file of toDelete) {
+        fs.unlinkSync(file.path);
+        console.log(`[backup] Deleted old backup: ${file.name}`);
       }
     }
   } catch (err) {

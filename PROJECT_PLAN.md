@@ -477,7 +477,7 @@ model AuditLog {
 - [ ] `PRAGMA journal_mode=WAL` при инициализации Prisma client
 - [ ] Адаптировать Dockerfile из `~/Projects/home-apothecary/Dockerfile`
 - [ ] Адаптировать docker-compose.yml (volumes: db, uploads, backups)
-- [ ] node-cron: ежедневный бэкап SQLite → /backups (ротация 30 дней)
+- [ ] node-cron: ежедневный бэкап SQLite → /backups (максимум 7 файлов, только при изменениях)
 - [ ] .env.example конфигурация
 
 ### Фаза 2 — Аутентификация и пользователи

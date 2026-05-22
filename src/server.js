@@ -12,6 +12,7 @@ const prisma = require("./utils/prisma");
 const { startBackupJob } = require("./jobs/backupDb");
 const { initFts } = require("./utils/fts");
 const { startInventoryCheckJob } = require("./jobs/checkInventory");
+const { startUpdateCheckJob } = require("./jobs/checkUpdates");
 const { startTelegramBotPolling, stopTelegramBotPolling } = require("./services/telegramBot");
 
 const port = process.env.PORT || 3000;
@@ -40,6 +41,7 @@ async function startServer() {
   server = app.listen(port, async () => {
     startBackupJob();
     startInventoryCheckJob();
+    startUpdateCheckJob();
     await startTelegramBotPolling(); // reads BOT_ACTIVE/BOT_TOKEN from Settings table
     console.log(`[server] Listening on http://localhost:${port}`);
   });

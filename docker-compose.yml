@@ -27,3 +27,15 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+
+  # Watchtower — auto-update container when new image is available
+  # Uncomment to enable automatic updates
+  # watchtower:
+  #   image: containrrr/watchtower
+  #   container_name: labstock-watchtower
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   command: --schedule "0 0 4 * * *" --cleanup labstock
+  #   environment:
+  #     - TZ=Europe/Moscow
